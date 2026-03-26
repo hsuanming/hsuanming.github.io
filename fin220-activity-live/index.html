@@ -5,11 +5,6 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
 <title>什么是金融 · What is Finance — FIN 220 Live</title>
 <link href="https://fonts.googleapis.com/css2?family=Noto+Serif+SC:wght@400;600;700&family=DM+Serif+Display&family=Noto+Sans+SC:wght@300;400;500;700&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet">
-
-<!-- Firebase CDN -->
-<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
-<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-database-compat.js"></script>
-
 <style>
 :root{
   --ink:#1a1814;--ink2:#3d3a35;--ink3:#7a7670;--ink4:#b0aca6;
@@ -19,6 +14,7 @@
   --blue:#1e4d8c;--blue-light:#dde8f7;
   --red:#a83232;--red-light:#fdeaea;
   --teal:#1a6b6b;--teal-light:#d4edec;
+  --purple:#6d28d9;--purple-light:#ede9fe;
   --radius:10px;--touch:48px;
   --shadow:0 2px 16px rgba(0,0,0,0.07);
   --shadow-lg:0 8px 32px rgba(0,0,0,0.13);
@@ -26,92 +22,90 @@
 *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
 html{scroll-behavior:smooth}
 body{font-family:'DM Sans','Noto Sans SC',sans-serif;background:var(--paper);color:var(--ink);min-height:100vh;line-height:1.6;-webkit-text-size-adjust:100%}
+.screen{display:none;min-height:100vh}.screen.active{display:block}
 
-/* ── SCREENS ── */
-.screen{display:none;min-height:100vh}
-.screen.active{display:block}
+/* ── CONNECTION STATUS ── */
+.conn-dot{width:8px;height:8px;border-radius:50%;background:#ef4444;flex-shrink:0;transition:background .3s}
+.conn-dot.connected{background:#22c55e;animation:connPulse 3s ease-in-out infinite}
+@keyframes connPulse{0%,100%{opacity:1}50%{opacity:.6}}
+.conn-label{font-size:10px;color:rgba(255,255,255,0.45);transition:color .3s}
+.conn-label.connected{color:rgba(255,255,255,0.6)}
+.conn-wrap{display:flex;align-items:center;gap:5px}
+.offline-banner{background:#7f1d1d;color:#fca5a5;font-size:12px;font-weight:500;text-align:center;padding:7px 16px;display:none}
+.offline-banner.show{display:block}
 
-/* ══════════════════════════════
-   JOIN SCREEN
-══════════════════════════════ */
-.join-screen{
-  background:linear-gradient(135deg,#1a1814 0%,#2d2820 55%,#3d3020 100%);
-  display:flex;flex-direction:column;align-items:center;justify-content:center;
-  min-height:100vh;padding:32px 20px;position:relative;overflow:hidden;
-}
-.join-screen::before{
-  content:'';position:absolute;inset:0;
-  background:radial-gradient(circle at 20% 50%,rgba(200,146,10,0.14) 0%,transparent 50%),
-    radial-gradient(circle at 80% 30%,rgba(26,107,107,0.10) 0%,transparent 50%);
-}
-.join-box{
-  position:relative;z-index:1;
-  background:rgba(255,255,255,0.04);
-  border:1px solid rgba(255,255,255,0.12);
-  border-radius:18px;
-  padding:36px 32px;
-  width:100%;max-width:440px;
-  backdrop-filter:blur(8px);
-}
-.join-logo{
-  font-family:'DM Serif Display','Noto Serif SC',serif;
-  font-size:13px;color:rgba(255,255,255,0.4);
-  letter-spacing:.08em;text-transform:uppercase;
-  margin-bottom:24px;text-align:center;
-}
-.join-title{
-  font-family:'DM Serif Display','Noto Serif SC',serif;
-  font-size:28px;color:#fff;text-align:center;line-height:1.2;margin-bottom:6px;
-}
-.join-title span{color:var(--gold-border)}
-.join-subtitle{font-size:13px;color:rgba(255,255,255,0.5);text-align:center;margin-bottom:28px}
-.join-field{margin-bottom:16px}
-.join-label{font-size:12px;font-weight:600;color:rgba(255,255,255,0.6);margin-bottom:7px;letter-spacing:.04em;display:block}
-.join-input,.join-select{
-  width:100%;height:var(--touch);padding:0 16px;
-  background:rgba(255,255,255,0.08);
-  border:1.5px solid rgba(255,255,255,0.15);
-  border-radius:10px;color:#fff;
-  font-family:inherit;font-size:15px;outline:none;
-  transition:border-color .2s,background .2s;
-  -webkit-appearance:none;
-}
+/* ── BROADCAST BANNER ── */
+.broadcast-banner{background:linear-gradient(90deg,var(--blue),#2563eb);color:#fff;font-size:13px;font-weight:500;text-align:center;padding:10px 20px;display:none;position:sticky;top:0;z-index:150;animation:slideDown .3s ease}
+.broadcast-banner.show{display:block}
+@keyframes slideDown{from{transform:translateY(-100%)}to{transform:translateY(0)}}
+
+/* ══ ORIENTATION SCREEN (pre-join) ══ */
+.orient-screen{background:linear-gradient(135deg,#1a1814 0%,#2d2820 55%,#3d3020 100%);min-height:100vh;padding:0;position:relative;overflow:hidden}
+.orient-screen::before{content:'';position:absolute;inset:0;background:radial-gradient(circle at 20% 50%,rgba(200,146,10,0.12) 0%,transparent 50%),radial-gradient(circle at 80% 30%,rgba(26,107,107,0.10) 0%,transparent 50%);pointer-events:none}
+.orient-topbar{position:relative;z-index:10;padding:14px 24px;display:flex;align-items:center;justify-content:space-between;border-bottom:1px solid rgba(255,255,255,0.07)}
+.orient-logo{font-family:'DM Serif Display','Noto Serif SC',serif;font-size:14px;color:rgba(255,255,255,0.5);letter-spacing:.04em}
+.orient-logo span{color:var(--gold-border)}
+.orient-body{position:relative;z-index:10;max-width:760px;margin:0 auto;padding:40px 24px 32px}
+.orient-eyebrow{font-size:10px;letter-spacing:.16em;text-transform:uppercase;color:var(--gold);font-weight:500;margin-bottom:12px}
+.orient-title{font-family:'DM Serif Display','Noto Serif SC',serif;font-size:clamp(28px,5vw,46px);color:#fff;line-height:1.15;margin-bottom:6px}
+.orient-title span{color:var(--gold-border)}
+.orient-subtitle{font-size:14px;color:rgba(255,255,255,0.5);margin-bottom:28px;font-weight:300}
+.orient-card{background:rgba(255,255,255,0.05);border:1px solid rgba(255,255,255,0.1);border-radius:14px;padding:24px;margin-bottom:16px}
+.orient-card-title{font-size:10px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:var(--gold);margin-bottom:14px}
+.orient-bilingual{display:grid;grid-template-columns:1fr 1fr;gap:0;border:1px solid rgba(255,255,255,0.1);border-radius:10px;overflow:hidden;margin-bottom:14px}
+.orient-lang{padding:14px 16px;font-size:13px;line-height:1.75;color:rgba(255,255,255,0.7)}
+.orient-lang:first-child{border-right:1px solid rgba(255,255,255,0.1);background:rgba(255,255,255,0.03)}
+.orient-lang:last-child{background:rgba(200,146,10,0.08)}
+.orient-lang-flag{font-size:10px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:rgba(255,255,255,0.35);margin-bottom:7px;display:block}
+.orient-flow{display:flex;flex-direction:column;gap:8px}
+.orient-flow-item{display:flex;gap:11px;padding:11px 14px;background:rgba(255,255,255,0.04);border-radius:8px;border:1px solid rgba(255,255,255,0.08);font-size:13px;color:rgba(255,255,255,0.7);line-height:1.6}
+.orient-num{width:24px;height:24px;border-radius:50%;background:var(--gold);color:#fff;font-size:11px;font-weight:700;display:flex;align-items:center;justify-content:center;flex-shrink:0;margin-top:1px}
+.orient-cn{color:rgba(255,255,255,0.35);font-size:12px;margin-top:2px}
+.orient-join-btn{width:100%;height:54px;margin-top:20px;background:var(--gold);color:#fff;border:none;border-radius:12px;font-family:inherit;font-size:16px;font-weight:600;cursor:pointer;transition:background .15s;letter-spacing:.02em;position:relative;z-index:10}
+.orient-join-btn:hover{background:#b07e08}
+.orient-tip{font-size:11px;color:rgba(255,255,255,0.3);text-align:center;margin-top:10px;position:relative;z-index:10}
+
+/* ══ JOIN FORM OVERLAY ══ */
+.join-overlay{position:fixed;inset:0;background:rgba(26,24,20,0.92);z-index:200;display:none;align-items:center;justify-content:center;padding:20px}
+.join-overlay.show{display:flex}
+.join-box{background:#2d2820;border:1px solid rgba(255,255,255,0.12);border-radius:18px;padding:32px 28px;width:100%;max-width:420px;box-shadow:var(--shadow-lg)}
+.join-box-title{font-family:'DM Serif Display','Noto Serif SC',serif;font-size:22px;color:#fff;margin-bottom:4px}
+.join-box-sub{font-size:12px;color:rgba(255,255,255,0.4);margin-bottom:22px}
+.join-field{margin-bottom:14px}
+.join-label{font-size:11px;font-weight:600;color:rgba(255,255,255,0.55);margin-bottom:6px;letter-spacing:.05em;display:block;text-transform:uppercase}
+.join-input,.join-select{width:100%;height:var(--touch);padding:0 15px;background:rgba(255,255,255,0.08);border:1.5px solid rgba(255,255,255,0.15);border-radius:10px;color:#fff;font-family:inherit;font-size:15px;outline:none;transition:border-color .2s;-webkit-appearance:none}
 .join-input::placeholder{color:rgba(255,255,255,0.3)}
-.join-input:focus,.join-select:focus{border-color:var(--gold-border);background:rgba(255,255,255,0.12)}
+.join-input:focus,.join-select:focus{border-color:var(--gold-border)}
 .join-select option{background:#2d2820;color:#fff}
-.join-btn{
-  width:100%;height:var(--touch);margin-top:8px;
-  background:var(--gold);color:#fff;border:none;
-  border-radius:10px;font-family:inherit;font-size:15px;font-weight:600;
-  cursor:pointer;transition:background .15s;letter-spacing:.02em;
-  -webkit-tap-highlight-color:transparent;
-}
-.join-btn:hover{background:#b07e08}
-.join-btn:disabled{opacity:.5;cursor:not-allowed}
-.join-error{font-size:12px;color:#fca5a5;margin-top:8px;text-align:center;min-height:18px}
-.team-status-preview{
-  margin-top:14px;padding:11px 14px;
-  background:rgba(255,255,255,0.05);
-  border:1px solid rgba(255,255,255,0.1);
-  border-radius:8px;font-size:12px;
-  color:rgba(255,255,255,0.55);text-align:center;min-height:36px;
-  line-height:1.5;
-}
-.team-status-preview.warn{color:#fcd34d}
-.team-status-preview.full{color:#fca5a5}
-.team-status-preview.ready{color:#86efac}
+.team-status-preview{margin-top:10px;padding:9px 13px;background:rgba(255,255,255,0.05);border:1px solid rgba(255,255,255,0.08);border-radius:8px;font-size:12px;color:rgba(255,255,255,0.45);text-align:center;min-height:34px;line-height:1.5}
+.team-status-preview.warn{color:#fcd34d}.team-status-preview.full-team{color:#fca5a5}.team-status-preview.ready{color:#86efac}
+.join-btn{width:100%;height:var(--touch);margin-top:10px;background:var(--gold);color:#fff;border:none;border-radius:10px;font-family:inherit;font-size:15px;font-weight:600;cursor:pointer;transition:background .15s}
+.join-btn:hover{background:#b07e08}.join-btn:disabled{opacity:.5;cursor:not-allowed}
+.join-error{font-size:12px;color:#fca5a5;margin-top:7px;text-align:center;min-height:18px}
+.join-cancel{display:block;text-align:center;margin-top:12px;font-size:12px;color:rgba(255,255,255,0.35);cursor:pointer;transition:color .15s}
+.join-cancel:hover{color:rgba(255,255,255,0.7)}
 
-/* ══════════════════════════════
-   STUDENT ACTIVITY SCREEN
-══════════════════════════════ */
+/* ══ JOIN SUCCESS ══ */
+.join-success{position:fixed;inset:0;background:rgba(26,24,20,0.95);z-index:250;display:none;align-items:center;justify-content:center;text-align:center;padding:24px}
+.join-success.show{display:flex;flex-direction:column}
+.success-icon{font-size:56px;margin-bottom:16px;animation:bounceIn .5s ease}
+@keyframes bounceIn{0%{transform:scale(0.5);opacity:0}70%{transform:scale(1.1)}100%{transform:scale(1);opacity:1}}
+.success-title{font-family:'DM Serif Display','Noto Serif SC',serif;font-size:26px;color:#fff;margin-bottom:8px}
+.success-team{font-size:18px;color:var(--gold-border);margin-bottom:6px;font-weight:600}
+.success-desc{font-size:14px;color:rgba(255,255,255,0.5);margin-bottom:24px;line-height:1.7}
+.success-spinner{width:32px;height:32px;border:3px solid rgba(255,255,255,0.1);border-top-color:var(--gold);border-radius:50%;animation:spin 1s linear infinite}
+@keyframes spin{to{transform:rotate(360deg)}}
+
+/* ══ ACTIVITY SCREEN ══ */
 .back-bar{background:var(--ink);padding:0;border-bottom:1px solid rgba(255,255,255,0.08)}
 .back-inner{max-width:960px;margin:0 auto;padding:0 20px;display:flex;align-items:center;justify-content:space-between}
-.back-btn{display:inline-flex;align-items:center;gap:7px;padding:10px 0;font-size:12px;font-weight:500;color:rgba(255,255,255,0.5);text-decoration:none;letter-spacing:.03em;transition:color .15s;min-height:var(--touch)}
+.back-btn{display:inline-flex;align-items:center;gap:7px;padding:9px 0;font-size:12px;font-weight:500;color:rgba(255,255,255,0.5);text-decoration:none;transition:color .15s;min-height:var(--touch)}
 .back-btn:hover{color:rgba(255,255,255,0.9)}
-.team-badge-top{font-size:12px;font-weight:600;color:rgba(255,255,255,0.7);display:flex;align-items:center;gap:6px}
+.back-right{display:flex;align-items:center;gap:12px}
+.team-badge-top{font-size:12px;font-weight:600;color:rgba(255,255,255,0.65);display:flex;align-items:center;gap:5px}
 
 .site-header{background:var(--ink);position:sticky;top:0;z-index:100;box-shadow:0 2px 12px rgba(0,0,0,0.25)}
-.header-inner{max-width:960px;margin:0 auto;padding:11px 20px;display:flex;align-items:center;justify-content:space-between;gap:12px}
+.header-inner{max-width:960px;margin:0 auto;padding:10px 20px;display:flex;align-items:center;justify-content:space-between;gap:12px}
 .header-title{display:flex;flex-direction:column;gap:2px}
 .header-title .main{font-family:'DM Serif Display','Noto Serif SC',serif;font-size:15px;color:#fff;line-height:1.2}
 .header-title .sub{font-size:10px;color:var(--ink4);letter-spacing:.05em;text-transform:uppercase}
@@ -121,51 +115,48 @@ body{font-family:'DM Sans','Noto Sans SC',sans-serif;background:var(--paper);col
 .hbadge.outline{border:1px solid rgba(255,255,255,0.22);color:rgba(255,255,255,0.65)}
 .hbadge.green{background:var(--green);color:#fff}
 
-/* TEAM MEMBERS BAR */
-.team-bar{background:var(--paper2);border-bottom:1px solid var(--paper3);padding:8px 20px}
-.team-bar-inner{max-width:960px;margin:0 auto;display:flex;align-items:center;gap:10px;flex-wrap:wrap}
-.team-bar-label{font-size:11px;font-weight:600;color:var(--ink3);letter-spacing:.04em;text-transform:uppercase;flex-shrink:0}
-.member-chips{display:flex;gap:6px;flex-wrap:wrap;flex:1}
-.member-chip{font-size:11px;font-weight:500;padding:3px 10px;border-radius:20px;background:var(--paper3);color:var(--ink2);display:flex;align-items:center;gap:4px}
+/* TEAM BAR */
+.team-bar{background:var(--paper2);border-bottom:1px solid var(--paper3);padding:7px 20px}
+.team-bar-inner{max-width:960px;margin:0 auto;display:flex;align-items:center;gap:9px;flex-wrap:wrap}
+.team-bar-label{font-size:10px;font-weight:700;color:var(--ink3);letter-spacing:.05em;text-transform:uppercase;flex-shrink:0}
+.member-chips{display:flex;gap:5px;flex-wrap:wrap;flex:1}
+.member-chip{font-size:11px;font-weight:500;padding:3px 9px;border-radius:20px;background:var(--paper3);color:var(--ink2);display:flex;align-items:center;gap:4px}
 .member-chip.me{background:var(--gold-light);color:var(--gold);border:1px solid var(--gold-border)}
 .member-chip .dot{width:5px;height:5px;border-radius:50%;background:var(--green);flex-shrink:0}
-.waiting-msg{font-size:12px;color:var(--red);font-weight:500;padding:4px 10px;background:var(--red-light);border-radius:6px;border:1px solid #f0b8b8}
-.ready-msg{font-size:12px;color:var(--green);font-weight:500;padding:4px 10px;background:var(--green-light);border-radius:6px;border:1px solid #9ecba8}
+.waiting-msg{font-size:11px;color:var(--red);font-weight:500;padding:3px 9px;background:var(--red-light);border-radius:6px;border:1px solid #f0b8b8}
+.ready-msg{font-size:11px;color:var(--green);font-weight:500;padding:3px 9px;background:var(--green-light);border-radius:6px;border:1px solid #9ecba8}
 
 /* HERO */
-.hero{background:linear-gradient(135deg,#1a1814 0%,#2d2820 60%,#3d3020 100%);padding:36px 20px 32px;text-align:center;position:relative;overflow:hidden}
+.hero{background:linear-gradient(135deg,#1a1814 0%,#2d2820 60%,#3d3020 100%);padding:32px 20px 28px;text-align:center;position:relative;overflow:hidden}
 .hero::before{content:'';position:absolute;inset:0;background-image:radial-gradient(circle at 20% 50%,rgba(200,146,10,0.12) 0%,transparent 50%),radial-gradient(circle at 80% 30%,rgba(26,107,107,0.10) 0%,transparent 50%)}
 .hero-inner{position:relative;max-width:700px;margin:0 auto}
-.hero-eyebrow{font-size:10px;letter-spacing:.14em;text-transform:uppercase;color:var(--gold);font-weight:500;margin-bottom:10px}
-.hero h1{font-family:'DM Serif Display','Noto Serif SC',serif;font-size:clamp(24px,5vw,40px);color:#fff;line-height:1.2;margin-bottom:6px}
+.hero-eyebrow{font-size:10px;letter-spacing:.14em;text-transform:uppercase;color:var(--gold);font-weight:500;margin-bottom:9px}
+.hero h1{font-family:'DM Serif Display','Noto Serif SC',serif;font-size:clamp(22px,4vw,38px);color:#fff;line-height:1.2;margin-bottom:6px}
 .hero h1 span{color:var(--gold-border)}
-.hero-sub{font-size:13px;color:rgba(255,255,255,0.55);margin-bottom:18px;font-weight:300}
+.hero-sub{font-size:13px;color:rgba(255,255,255,0.5);margin-bottom:16px;font-weight:300}
 .hero-pills{display:flex;gap:7px;justify-content:center;flex-wrap:wrap}
-.hero-pill{font-size:11px;padding:4px 11px;border-radius:20px;border:1px solid rgba(255,255,255,0.18);color:rgba(255,255,255,0.7);background:rgba(255,255,255,0.05)}
+.hero-pill{font-size:11px;padding:3px 11px;border-radius:20px;border:1px solid rgba(255,255,255,0.15);color:rgba(255,255,255,0.65);background:rgba(255,255,255,0.05)}
 
 /* WAITING OVERLAY */
-.waiting-overlay{
-  position:fixed;inset:0;background:rgba(26,24,20,0.92);
-  display:flex;flex-direction:column;align-items:center;justify-content:center;
-  z-index:200;padding:32px 20px;text-align:center;
-}
+.waiting-overlay{position:fixed;inset:0;background:rgba(26,24,20,0.93);display:flex;flex-direction:column;align-items:center;justify-content:center;z-index:200;padding:32px 20px;text-align:center}
 .waiting-overlay.hidden{display:none}
-.waiting-icon{font-size:48px;margin-bottom:20px;animation:pulse 2s ease-in-out infinite}
-@keyframes pulse{0%,100%{transform:scale(1);opacity:1}50%{transform:scale(1.1);opacity:.8}}
-.waiting-title{font-family:'DM Serif Display','Noto Serif SC',serif;font-size:24px;color:#fff;margin-bottom:8px}
-.waiting-desc{font-size:14px;color:rgba(255,255,255,0.55);margin-bottom:24px;line-height:1.7}
-.waiting-members{display:flex;gap:8px;justify-content:center;flex-wrap:wrap;margin-bottom:20px}
-.waiting-chip{font-size:12px;padding:5px 12px;border-radius:20px;background:rgba(255,255,255,0.1);color:rgba(255,255,255,0.8);border:1px solid rgba(255,255,255,0.15)}
+.waiting-icon{font-size:44px;margin-bottom:16px;animation:pulse 2s ease-in-out infinite}
+@keyframes pulse{0%,100%{transform:scale(1)}50%{transform:scale(1.08)}}
+.waiting-title{font-family:'DM Serif Display','Noto Serif SC',serif;font-size:22px;color:#fff;margin-bottom:7px}
+.waiting-desc{font-size:13px;color:rgba(255,255,255,0.5);margin-bottom:20px;line-height:1.7}
+.waiting-members{display:flex;gap:7px;justify-content:center;flex-wrap:wrap;margin-bottom:16px}
+.waiting-chip{font-size:12px;padding:4px 12px;border-radius:20px;background:rgba(255,255,255,0.08);color:rgba(255,255,255,0.7);border:1px solid rgba(255,255,255,0.12)}
 .waiting-chip.filled{background:rgba(45,106,63,0.4);color:#86efac;border-color:rgba(45,106,63,0.5)}
-.waiting-counter{font-size:13px;color:rgba(255,255,255,0.4)}
+.waiting-counter{font-size:12px;color:rgba(255,255,255,0.35)}
 
 /* PROGRESS BAR */
 .progress-bar-wrap{background:var(--paper2);border-bottom:1px solid var(--paper3);padding:0 20px;overflow-x:auto;scrollbar-width:none}
 .progress-bar-wrap::-webkit-scrollbar{display:none}
 .progress-bar{max-width:960px;margin:0 auto;display:flex;position:relative}
 .progress-bar::after{content:'';position:absolute;left:0;right:0;top:50%;height:2px;background:var(--paper3);z-index:0;transform:translateY(-50%)}
-.step-btn{display:flex;flex-direction:column;align-items:center;gap:4px;padding:11px 8px 9px;cursor:pointer;border:none;background:none;font-family:inherit;position:relative;z-index:1;flex:1;min-width:48px;transition:all .2s;-webkit-tap-highlight-color:transparent}
-.step-circle{width:27px;height:27px;border-radius:50%;border:2px solid var(--paper3);background:var(--paper);display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:600;color:var(--ink3);transition:all .2s;position:relative;z-index:2}
+.step-btn{display:flex;flex-direction:column;align-items:center;gap:4px;padding:10px 8px 8px;cursor:pointer;border:none;background:none;font-family:inherit;position:relative;z-index:1;flex:1;min-width:46px;transition:all .2s;-webkit-tap-highlight-color:transparent}
+.step-btn.locked{cursor:not-allowed;opacity:.6}
+.step-circle{width:26px;height:26px;border-radius:50%;border:2px solid var(--paper3);background:var(--paper);display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:600;color:var(--ink3);transition:all .2s;position:relative;z-index:2}
 .step-btn.active .step-circle{border-color:var(--gold);background:var(--gold);color:#fff;box-shadow:0 0 0 4px var(--gold-light)}
 .step-btn.done .step-circle{border-color:var(--green);background:var(--green);color:#fff}
 .step-label-en{font-size:9px;font-weight:500;color:var(--ink3);display:block;white-space:nowrap}
@@ -174,277 +165,325 @@ body{font-family:'DM Sans','Noto Sans SC',sans-serif;background:var(--paper);col
 .step-btn.active .step-label-cn{color:var(--gold)}
 
 /* MAIN */
-.main{max-width:960px;margin:0 auto;padding:24px 20px 80px}
-.panel{display:none;animation:fadeUp .3s ease}
-.panel.active{display:block}
-@keyframes fadeUp{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:translateY(0)}}
+.main{max-width:960px;margin:0 auto;padding:22px 20px 80px}
+.panel{display:none;animation:fadeUp .3s ease}.panel.active{display:block}
+@keyframes fadeUp{from{opacity:0;transform:translateY(9px)}to{opacity:1;transform:translateY(0)}}
 
-/* SHARED COMPONENTS (same as Part A) */
-.panel-step-tag{display:inline-flex;align-items:center;gap:6px;font-size:11px;font-weight:600;letter-spacing:.08em;text-transform:uppercase;color:var(--gold);margin-bottom:7px}
-.panel-step-tag .dot{width:6px;height:6px;border-radius:50%;background:var(--gold)}
-.panel-title{font-family:'DM Serif Display','Noto Serif SC',serif;font-size:23px;color:var(--ink);line-height:1.25;margin-bottom:3px}
-.panel-title-cn{font-size:14px;color:var(--ink3);font-weight:300;margin-bottom:18px}
+/* SHARED COMPONENTS */
+.panel-step-tag{display:inline-flex;align-items:center;gap:5px;font-size:11px;font-weight:600;letter-spacing:.08em;text-transform:uppercase;color:var(--gold);margin-bottom:6px}
+.panel-step-tag .dot{width:5px;height:5px;border-radius:50%;background:var(--gold)}
+.panel-title{font-family:'DM Serif Display','Noto Serif SC',serif;font-size:22px;color:var(--ink);line-height:1.25;margin-bottom:3px}
+.panel-title-cn{font-size:14px;color:var(--ink3);font-weight:300;margin-bottom:16px}
 
-.bilingual-card{display:grid;grid-template-columns:1fr 1fr;border:1px solid var(--paper3);border-radius:var(--radius);overflow:hidden;margin-bottom:16px;box-shadow:var(--shadow)}
-.bilingual-col{padding:15px 17px;background:var(--paper);font-size:13px;line-height:1.75;color:var(--ink2)}
+.bilingual-card{display:grid;grid-template-columns:1fr 1fr;border:1px solid var(--paper3);border-radius:var(--radius);overflow:hidden;margin-bottom:14px;box-shadow:var(--shadow)}
+.bilingual-col{padding:14px 16px;background:var(--paper);font-size:13px;line-height:1.75;color:var(--ink2)}
 .bilingual-col:first-child{border-right:1px solid var(--paper3)}
 .bilingual-col.gold-tint{background:var(--gold-light)}
-.lang-flag{font-size:10px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:var(--ink4);margin-bottom:7px;display:block}
+.lang-flag{font-size:10px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:var(--ink4);margin-bottom:6px;display:block}
 
-.step-flow{display:flex;flex-direction:column;gap:7px;margin-bottom:16px}
-.flow-item{display:flex;align-items:flex-start;gap:11px;padding:11px 13px;background:var(--paper2);border-radius:8px;border:1px solid var(--paper3);font-size:13px;line-height:1.6;color:var(--ink2)}
-.flow-num{width:24px;height:24px;border-radius:50%;background:var(--gold);color:#fff;font-size:11px;font-weight:700;display:flex;align-items:center;justify-content:center;flex-shrink:0;margin-top:1px}
-.flow-cn{color:var(--ink4);font-size:12px;margin-top:2px}
+.step-flow{display:flex;flex-direction:column;gap:7px;margin-bottom:14px}
+.flow-item{display:flex;align-items:flex-start;gap:10px;padding:10px 13px;background:var(--paper2);border-radius:8px;border:1px solid var(--paper3);font-size:13px;line-height:1.6;color:var(--ink2)}
+.flow-num{width:22px;height:22px;border-radius:50%;background:var(--gold);color:#fff;font-size:11px;font-weight:700;display:flex;align-items:center;justify-content:center;flex-shrink:0;margin-top:1px}
+.flow-cn{color:var(--ink4);font-size:11px;margin-top:2px}
 
-.nav-bar{display:flex;justify-content:space-between;align-items:center;margin-top:24px;padding-top:18px;border-top:1px solid var(--paper3);gap:10px}
-.nav-btn{display:inline-flex;align-items:center;justify-content:center;gap:6px;padding:0 18px;height:var(--touch);border-radius:10px;font-size:14px;font-weight:500;cursor:pointer;border:1px solid var(--paper3);background:var(--paper);color:var(--ink2);font-family:inherit;transition:all .15s;-webkit-tap-highlight-color:transparent;min-width:90px}
+.nav-bar{display:flex;justify-content:space-between;align-items:center;margin-top:22px;padding-top:16px;border-top:1px solid var(--paper3);gap:10px}
+.nav-btn{display:inline-flex;align-items:center;justify-content:center;gap:5px;padding:0 16px;height:var(--touch);border-radius:10px;font-size:14px;font-weight:500;cursor:pointer;border:1px solid var(--paper3);background:var(--paper);color:var(--ink2);font-family:inherit;transition:all .15s;-webkit-tap-highlight-color:transparent;min-width:80px}
 .nav-btn:hover{border-color:var(--ink3);background:var(--paper2)}
 .nav-btn.primary{background:var(--gold);color:#fff;border-color:var(--gold)}
 .nav-btn.primary:hover{background:#b07e08}
 .nav-btn:active{transform:scale(0.97)}
 
 /* PRODUCT GRID */
-.product-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-bottom:12px}
-.product-card{border:1.5px solid var(--paper3);border-radius:var(--radius);padding:11px 9px;cursor:pointer;transition:all .15s;background:var(--paper);text-align:center;user-select:none;-webkit-tap-highlight-color:transparent;min-height:var(--touch)}
+.product-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-bottom:11px}
+.product-card{border:1.5px solid var(--paper3);border-radius:var(--radius);padding:10px 8px;cursor:pointer;transition:all .15s;background:var(--paper);text-align:center;user-select:none;-webkit-tap-highlight-color:transparent;min-height:var(--touch)}
 .product-card:hover{border-color:var(--gold-border);box-shadow:var(--shadow)}
-.product-card.selected{border-color:var(--gold);background:var(--gold-light);box-shadow:0 0 0 3px rgba(200,146,10,0.15)}
+.product-card.selected{border-color:var(--gold);background:var(--gold-light);box-shadow:0 0 0 3px rgba(200,146,10,0.12)}
 .product-card.disabled{opacity:.4;cursor:not-allowed;pointer-events:none}
-.product-emoji{font-size:22px;margin-bottom:5px}
+.product-emoji{font-size:20px;margin-bottom:4px}
 .product-en{font-size:10px;font-weight:600;color:var(--ink2);line-height:1.3}
 .product-cn{font-size:10px;color:var(--ink3);margin-top:2px}
 .product-card.selected .product-en{color:var(--gold)}
-.sel-status{font-size:13px;font-weight:500;padding:9px 13px;border-radius:8px;margin-bottom:12px;text-align:center}
+.sel-status{font-size:13px;font-weight:500;padding:8px 12px;border-radius:8px;margin-bottom:11px;text-align:center}
 .sel-status.empty{background:var(--paper2);color:var(--ink3)}
 .sel-status.partial{background:var(--gold-light);color:var(--gold);border:1px solid var(--gold-border)}
 .sel-status.full{background:var(--green-light);color:var(--green);border:1px solid #9ecba8}
 
-/* ANALYSIS TABLE */
-.analysis-table{width:100%;border-collapse:collapse;border:1px solid var(--paper3);border-radius:var(--radius);overflow:hidden;box-shadow:var(--shadow);margin-bottom:14px;font-size:12px}
-.analysis-table thead th{background:var(--ink);color:#fff;padding:9px 11px;text-align:left;font-weight:500;font-size:11px}
-.analysis-table thead th .cn{display:block;font-size:10px;opacity:.6;font-weight:300;margin-top:1px}
-.analysis-table tbody td{padding:9px 11px;border-bottom:1px solid var(--paper3);vertical-align:top;line-height:1.6;color:var(--ink2)}
-.analysis-table tbody td:first-child{background:var(--paper2);font-weight:500;color:var(--ink);width:24%}
-.analysis-table tbody td .cn{font-size:10px;color:var(--ink4);margin-top:2px}
-.analysis-table tbody tr:last-child td{border-bottom:none}
+/* SYNC INDICATOR */
+.sync-indicator{display:inline-flex;align-items:center;gap:4px;font-size:10px;color:var(--green);font-weight:500;padding:2px 7px;background:var(--green-light);border-radius:20px;border:1px solid #9ecba8;margin-left:7px;opacity:0;transition:opacity .3s}
+.sync-indicator.show{opacity:1}
 
 /* PRODUCT INPUT */
-.product-input-section{margin-bottom:20px}
-.product-input-header{display:flex;align-items:center;gap:9px;padding:11px 14px;background:var(--ink);border-radius:8px 8px 0 0;color:#fff}
+.product-input-section{margin-bottom:18px}
+.product-input-header{display:flex;align-items:center;gap:9px;padding:10px 13px;background:var(--ink);border-radius:8px 8px 0 0;color:#fff}
 .product-input-header .p-emoji{font-size:18px;flex-shrink:0}
-.product-input-header .p-name-en{font-size:13px;font-weight:500;line-height:1.2}
-.product-input-header .p-name-cn{font-size:11px;color:rgba(255,255,255,0.5);margin-top:1px}
+.p-name-en{font-size:13px;font-weight:500;line-height:1.2}
+.p-name-cn{font-size:11px;color:rgba(255,255,255,0.5);margin-top:1px}
 .product-input-body{border:1px solid var(--paper3);border-top:none;border-radius:0 0 8px 8px;overflow:hidden}
-.input-row{display:grid;grid-template-columns:180px 1fr;border-bottom:1px solid var(--paper3)}
+.input-row{display:grid;grid-template-columns:160px 1fr;border-bottom:1px solid var(--paper3)}
 .input-row:last-child{border-bottom:none}
-.input-label{padding:11px 13px;background:var(--paper2);font-size:11px;font-weight:500;color:var(--ink2);line-height:1.5}
+.input-label{padding:10px 12px;background:var(--paper2);font-size:11px;font-weight:500;color:var(--ink2);line-height:1.5}
 .input-label .cn{font-size:10px;color:var(--ink4);display:block;margin-top:2px}
 .input-wrap{position:relative;display:flex;flex-direction:column}
-.input-field{padding:11px 13px;border:none;outline:none;font-family:'DM Sans','Noto Sans SC',sans-serif;font-size:14px;color:var(--ink);background:var(--paper);resize:vertical;min-height:80px;width:100%;line-height:1.65;transition:background .15s}
+.input-field{padding:10px 12px;border:none;outline:none;font-family:'DM Sans','Noto Sans SC',sans-serif;font-size:14px;color:var(--ink);background:var(--paper);resize:vertical;min-height:76px;width:100%;line-height:1.6;transition:background .15s}
 .input-field:focus{background:#fffdf7;box-shadow:inset 0 0 0 2px var(--gold-border)}
 .input-field::placeholder{color:var(--ink4);font-size:12px}
-.char-count{font-size:10px;color:var(--ink4);text-align:right;padding:2px 9px 4px;background:var(--paper);border-top:1px dashed var(--paper3)}
-
-/* SYNC INDICATOR */
-.sync-indicator{display:inline-flex;align-items:center;gap:5px;font-size:10px;color:var(--green);font-weight:500;padding:3px 8px;background:var(--green-light);border-radius:20px;border:1px solid #9ecba8;margin-left:8px;opacity:0;transition:opacity .3s}
-.sync-indicator.show{opacity:1}
-.sync-dot{width:5px;height:5px;border-radius:50%;background:var(--green);animation:blink 1s ease-in-out 3}
-@keyframes blink{0%,100%{opacity:1}50%{opacity:.3}}
+.input-meta{display:flex;align-items:center;justify-content:space-between;padding:2px 9px 4px;background:var(--paper);border-top:1px dashed var(--paper3)}
+.char-count{font-size:10px;color:var(--ink4)}
+.last-edit{font-size:10px;color:var(--teal);font-style:italic}
 
 /* TRAIT GRID */
-.trait-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:13px}
-.trait-card{border:1.5px solid var(--paper3);border-radius:var(--radius);padding:11px 12px;cursor:pointer;transition:all .15s;background:var(--paper);user-select:none;display:flex;align-items:flex-start;gap:9px;-webkit-tap-highlight-color:transparent;min-height:var(--touch)}
+.trait-grid{display:grid;grid-template-columns:1fr 1fr;gap:7px;margin-bottom:12px}
+.trait-card{border:1.5px solid var(--paper3);border-radius:var(--radius);padding:10px 12px;cursor:pointer;transition:all .15s;background:var(--paper);user-select:none;display:flex;align-items:flex-start;gap:9px;-webkit-tap-highlight-color:transparent;min-height:var(--touch)}
 .trait-card:hover{border-color:var(--gold-border)}
 .trait-card.checked{border-color:var(--green);background:var(--green-light)}
-.trait-checkbox{width:19px;height:19px;border:1.5px solid var(--paper3);border-radius:4px;background:var(--paper);flex-shrink:0;margin-top:1px;display:flex;align-items:center;justify-content:center;font-size:11px;color:transparent;transition:all .15s}
+.trait-checkbox{width:18px;height:18px;border:1.5px solid var(--paper3);border-radius:4px;background:var(--paper);flex-shrink:0;margin-top:1px;display:flex;align-items:center;justify-content:center;font-size:11px;color:transparent;transition:all .15s}
 .trait-card.checked .trait-checkbox{background:var(--green);border-color:var(--green);color:#fff}
 .trait-text .en{font-size:12px;font-weight:500;color:var(--ink)}
-.trait-text .cn{font-size:10px;color:var(--ink3);margin-top:2px}
+.trait-text .cn{font-size:10px;color:var(--ink3);margin-top:1px}
 .trait-card.checked .trait-text .en{color:var(--green)}
 
 /* SYNTHESIS */
-.synthesis-box{background:linear-gradient(135deg,var(--gold-light),#fff8e8);border:1.5px solid var(--gold-border);border-radius:var(--radius);padding:15px 17px;margin-bottom:13px}
-.synthesis-title{font-size:12px;font-weight:700;color:var(--gold);letter-spacing:.04em;margin-bottom:8px;display:flex;align-items:center;gap:6px}
-.synthesis-title::before{content:'◆';font-size:9px}
+.synthesis-box{background:linear-gradient(135deg,var(--gold-light),#fff8e8);border:1.5px solid var(--gold-border);border-radius:var(--radius);padding:14px 16px;margin-bottom:12px}
+.synthesis-title{font-size:11px;font-weight:700;color:var(--gold);letter-spacing:.04em;margin-bottom:7px;display:flex;align-items:center;gap:5px}
+.synthesis-title::before{content:'◆';font-size:8px}
 .synthesis-q{font-size:13px;color:var(--ink2);line-height:1.7;margin-bottom:7px}
 .synthesis-q .cn{color:var(--ink3);font-size:12px;display:block;margin-top:4px}
-.synthesis-hint{font-size:11px;color:var(--ink3);line-height:1.65;padding:7px 11px;background:rgba(200,146,10,0.07);border-radius:6px;border-left:3px solid var(--gold-border)}
+.synthesis-hint{font-size:11px;color:var(--ink3);line-height:1.6;padding:7px 10px;background:rgba(200,146,10,0.07);border-radius:6px;border-left:3px solid var(--gold-border)}
 
-/* DEFINITION INPUT */
-.definition-input-wrap{margin-bottom:18px}
-.def-input-label{font-size:14px;font-weight:600;color:var(--ink2);margin-bottom:9px;display:flex;align-items:center;gap:7px;flex-wrap:wrap}
+/* ── STEP 5 DEFINITIONS ── */
+.definition-input-wrap{margin-bottom:16px}
+.def-input-label{font-size:14px;font-weight:600;color:var(--ink2);margin-bottom:8px;display:flex;align-items:center;gap:7px;flex-wrap:wrap}
 .def-input-label .cn{font-weight:400;color:var(--ink4);font-size:12px}
-.def-textarea{width:100%;min-height:120px;padding:15px 17px;border:2px solid var(--paper3);border-radius:var(--radius);font-family:'DM Sans','Noto Sans SC',sans-serif;font-size:15px;color:var(--ink);background:var(--paper);resize:vertical;outline:none;line-height:1.75;transition:border-color .2s,background .2s,box-shadow .2s}
-.def-textarea:focus{border-color:var(--gold);background:#fffdf7;box-shadow:0 0 0 4px rgba(200,146,10,0.12)}
+.def-textarea{width:100%;min-height:110px;padding:14px 16px;border:2px solid var(--paper3);border-radius:var(--radius);font-family:'DM Sans','Noto Sans SC',sans-serif;font-size:15px;color:var(--ink);background:var(--paper);resize:vertical;outline:none;line-height:1.75;transition:border-color .2s,background .2s,box-shadow .2s}
+.def-textarea:focus{border-color:var(--gold);background:#fffdf7;box-shadow:0 0 0 4px rgba(200,146,10,0.10)}
 .def-textarea::placeholder{color:var(--ink4);font-size:13px}
 .def-word-count{font-size:11px;color:var(--ink4);text-align:right;margin-top:4px;transition:color .15s}
 .def-word-count.has-words{color:var(--green)}
 
+/* TEAM DEFINITIONS & VOTING */
+.team-defs-section{margin-top:20px;margin-bottom:16px}
+.team-defs-title{font-size:11px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:var(--blue);margin-bottom:10px;padding-bottom:7px;border-bottom:1px solid var(--paper3);display:flex;align-items:center;gap:7px}
+.def-card{border:1.5px solid var(--paper3);border-radius:var(--radius);overflow:hidden;margin-bottom:9px;transition:all .2s;background:var(--paper)}
+.def-card.winner{border-color:var(--gold);box-shadow:0 0 0 3px rgba(200,146,10,0.12)}
+.def-card.mine{border-color:var(--blue)}
+.def-card-header{display:flex;align-items:center;justify-content:space-between;padding:9px 13px;background:var(--paper2);border-bottom:1px solid var(--paper3);gap:10px}
+.def-student-name{font-size:12px;font-weight:600;color:var(--ink2);display:flex;align-items:center;gap:6px}
+.def-mine-badge{font-size:9px;font-weight:700;padding:1px 6px;background:var(--blue-light);color:var(--blue);border-radius:20px;letter-spacing:.04em}
+.def-winner-badge{font-size:9px;font-weight:700;padding:1px 6px;background:var(--gold-light);color:var(--gold);border-radius:20px;letter-spacing:.04em;border:1px solid var(--gold-border)}
+.def-vote-area{display:flex;align-items:center;gap:8px}
+.vote-count{font-size:12px;font-weight:600;color:var(--ink3)}
+.vote-btn{height:30px;padding:0 12px;border-radius:6px;border:1.5px solid var(--paper3);background:var(--paper);font-family:inherit;font-size:11px;font-weight:600;cursor:pointer;transition:all .15s;-webkit-tap-highlight-color:transparent;display:flex;align-items:center;gap:4px}
+.vote-btn:hover{border-color:var(--gold-border);background:var(--gold-light);color:var(--gold)}
+.vote-btn.voted{background:var(--gold);border-color:var(--gold);color:#fff}
+.vote-btn:disabled{opacity:.4;cursor:not-allowed}
+.def-text-body{padding:11px 13px;font-size:13px;line-height:1.7;color:var(--ink2);font-style:italic}
+.def-text-body.empty{color:var(--ink4)}
+.def-card.winner .def-card-header{background:var(--gold-light)}
+
 /* PASSWORD ACCORDION */
 .locked-accordion{border:1px solid var(--paper3);border-radius:var(--radius);overflow:hidden;margin-bottom:9px;box-shadow:var(--shadow)}
-.locked-header{width:100%;padding:12px 15px;background:var(--paper2);border:none;font-family:inherit;font-size:13px;font-weight:500;color:var(--ink2);display:flex;justify-content:space-between;align-items:center;cursor:pointer;transition:background .15s;text-align:left;gap:10px;min-height:var(--touch);-webkit-tap-highlight-color:transparent}
+.locked-header{width:100%;padding:11px 14px;background:var(--paper2);border:none;font-family:inherit;font-size:13px;font-weight:500;color:var(--ink2);display:flex;justify-content:space-between;align-items:center;cursor:pointer;transition:background .15s;text-align:left;gap:10px;min-height:var(--touch);-webkit-tap-highlight-color:transparent}
 .locked-header:hover{background:var(--paper3)}
-.locked-header .hcn{font-size:11px;color:var(--ink4);font-weight:400;display:block;margin-top:2px}
-.lock-badge{font-size:10px;font-weight:700;letter-spacing:.05em;background:var(--red-light);color:var(--red);border:1px solid #f0b8b8;padding:2px 8px;border-radius:20px;flex-shrink:0;white-space:nowrap}
-.locked-body{display:none;border-top:1px solid var(--paper3)}
-.locked-body.open{display:block}
-.pw-gate{padding:16px 17px 14px;background:var(--paper)}
-.pw-gate-title{font-size:13px;font-weight:600;color:var(--ink2);margin-bottom:9px;display:flex;align-items:center;gap:6px}
+.locked-header .hcn{font-size:11px;color:var(--ink4);font-weight:400;display:block;margin-top:1px}
+.lock-badge{font-size:10px;font-weight:700;letter-spacing:.05em;background:var(--red-light);color:var(--red);border:1px solid #f0b8b8;padding:2px 7px;border-radius:20px;flex-shrink:0;white-space:nowrap}
+.locked-body{display:none;border-top:1px solid var(--paper3)}.locked-body.open{display:block}
+.pw-gate{padding:14px 16px 12px;background:var(--paper)}
+.pw-gate-title{font-size:12px;font-weight:600;color:var(--ink2);margin-bottom:8px;display:flex;align-items:center;gap:5px}
 .pw-row{display:flex;align-items:center;gap:7px;margin-bottom:5px}
-.pw-input{padding:0 13px;height:var(--touch);border:1.5px solid var(--paper3);border-radius:8px;font-family:inherit;font-size:16px;width:120px;outline:none;letter-spacing:.25em;color:var(--ink);transition:border-color .15s}
-.pw-input:focus{border-color:var(--gold-border);box-shadow:0 0 0 3px rgba(200,146,10,0.10)}
+.pw-input{padding:0 12px;height:var(--touch);border:1.5px solid var(--paper3);border-radius:8px;font-family:inherit;font-size:16px;width:115px;outline:none;letter-spacing:.25em;color:var(--ink);transition:border-color .15s}
+.pw-input:focus{border-color:var(--gold-border);box-shadow:0 0 0 3px rgba(200,146,10,0.08)}
 .pw-input.shake{animation:shake .35s ease}
 @keyframes shake{0%,100%{transform:translateX(0)}20%{transform:translateX(-6px)}40%{transform:translateX(6px)}60%{transform:translateX(-4px)}80%{transform:translateX(4px)}}
-.pw-btn{height:var(--touch);padding:0 16px;border-radius:8px;background:var(--gold);color:#fff;border:none;font-family:inherit;font-size:12px;font-weight:600;cursor:pointer;transition:background .15s}
+.pw-btn{height:var(--touch);padding:0 14px;border-radius:8px;background:var(--gold);color:#fff;border:none;font-family:inherit;font-size:12px;font-weight:600;cursor:pointer;transition:background .15s}
 .pw-btn:hover{background:#b07e08}
 .pw-hint{font-size:11px;color:var(--ink4);margin-top:3px}
-.pw-error{font-size:12px;color:var(--red);display:none;margin-top:5px;font-weight:500}
-.locked-content{padding:15px 17px;background:var(--paper);font-size:13px;line-height:1.75;color:var(--ink2);display:none}
+.pw-error{font-size:12px;color:var(--red);display:none;margin-top:4px;font-weight:500}
+.locked-content{padding:14px 16px;background:var(--paper);font-size:13px;line-height:1.75;color:var(--ink2);display:none}
 .locked-content.revealed{display:block;animation:fadeIn .25s ease}
 @keyframes fadeIn{from{opacity:0}to{opacity:1}}
-.locked-content ul{margin-left:17px;margin-top:5px}
-.locked-content li{margin-bottom:5px}
-.locked-content .cn-block{margin-top:11px;padding-top:11px;border-top:1px dashed var(--paper3);color:var(--ink3);font-size:12px}
+.locked-content ul{margin-left:16px;margin-top:5px}.locked-content li{margin-bottom:5px}
+.locked-content .cn-block{margin-top:10px;padding-top:10px;border-top:1px dashed var(--paper3);color:var(--ink3);font-size:12px}
 
 /* OPEN ACCORDION */
 .accordion{border:1px solid var(--paper3);border-radius:var(--radius);overflow:hidden;margin-bottom:9px;box-shadow:var(--shadow)}
-.accordion-header{width:100%;padding:12px 15px;background:var(--paper2);border:none;font-family:inherit;font-size:13px;font-weight:500;color:var(--ink2);display:flex;justify-content:space-between;align-items:center;cursor:pointer;transition:background .15s;text-align:left;gap:10px;min-height:var(--touch);-webkit-tap-highlight-color:transparent}
+.accordion-header{width:100%;padding:11px 14px;background:var(--paper2);border:none;font-family:inherit;font-size:13px;font-weight:500;color:var(--ink2);display:flex;justify-content:space-between;align-items:center;cursor:pointer;transition:background .15s;text-align:left;gap:10px;min-height:var(--touch);-webkit-tap-highlight-color:transparent}
 .accordion-header:hover{background:var(--paper3)}
 .accordion-header .cn{font-size:11px;color:var(--ink4);font-weight:400}
 .accordion-arrow{font-size:12px;color:var(--ink4);flex-shrink:0}
-.accordion-body{display:none;padding:15px 17px;font-size:13px;line-height:1.75;color:var(--ink2);background:var(--paper);border-top:1px solid var(--paper3)}
+.accordion-body{display:none;padding:14px 16px;font-size:13px;line-height:1.75;color:var(--ink2);background:var(--paper);border-top:1px solid var(--paper3)}
 .accordion-body.open{display:block;animation:fadeIn .2s ease}
-.accordion-body ul{margin-left:17px;margin-top:5px}
-.accordion-body li{margin-bottom:5px}
-.accordion-body .cn-block{margin-top:11px;padding-top:11px;border-top:1px dashed var(--paper3);color:var(--ink3);font-size:12px}
+.accordion-body ul{margin-left:16px;margin-top:5px}.accordion-body li{margin-bottom:5px}
+.accordion-body .cn-block{margin-top:10px;padding-top:10px;border-top:1px dashed var(--paper3);color:var(--ink3);font-size:12px}
 
 /* DEBRIEF */
-.debrief-questions{display:flex;flex-direction:column;gap:7px;margin-bottom:16px}
-.dq-item{display:flex;gap:11px;padding:12px 14px;background:var(--paper2);border-radius:8px;border:1px solid var(--paper3);align-items:flex-start}
-.dq-num{width:26px;height:26px;border-radius:50%;background:var(--blue);color:#fff;font-size:11px;font-weight:700;display:flex;align-items:center;justify-content:center;flex-shrink:0;margin-top:1px}
-.dq-text{font-size:13px;color:var(--ink2);line-height:1.65}
-.dq-text .cn{color:var(--ink4);font-size:12px;margin-top:2px;display:block}
+.debrief-questions{display:flex;flex-direction:column;gap:7px;margin-bottom:14px}
+.dq-item{display:flex;gap:10px;padding:11px 13px;background:var(--paper2);border-radius:8px;border:1px solid var(--paper3);align-items:flex-start}
+.dq-num{width:24px;height:24px;border-radius:50%;background:var(--blue);color:#fff;font-size:11px;font-weight:700;display:flex;align-items:center;justify-content:center;flex-shrink:0;margin-top:1px}
+.dq-text{font-size:13px;color:var(--ink2);line-height:1.6}
+.dq-text .cn{color:var(--ink4);font-size:11px;margin-top:2px;display:block}
 
 /* RUBRIC */
-.rubric-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin-bottom:13px}
-.rubric-card{background:var(--paper);border:1px solid var(--paper3);border-radius:var(--radius);padding:12px 10px;text-align:center;box-shadow:var(--shadow)}
-.rubric-score{font-size:24px;font-weight:700;color:var(--ink)}
-.rubric-max{font-size:11px;color:var(--ink4)}
-.rubric-label{font-size:10px;font-weight:600;color:var(--ink2);margin-top:5px}
+.rubric-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:7px;margin-bottom:12px}
+.rubric-card{background:var(--paper);border:1px solid var(--paper3);border-radius:var(--radius);padding:11px 9px;text-align:center;box-shadow:var(--shadow)}
+.rubric-score{font-size:22px;font-weight:700;color:var(--ink)}
+.rubric-max{font-size:10px;color:var(--ink4)}
+.rubric-label{font-size:10px;font-weight:600;color:var(--ink2);margin-top:4px}
 .rubric-label-cn{font-size:10px;color:var(--ink4);margin-top:1px}
 
 /* MISC */
-.info-callout{display:flex;gap:9px;padding:11px 13px;background:var(--blue-light);border-radius:8px;border:1px solid #b0c8e8;margin-bottom:11px;font-size:12px;line-height:1.6;color:var(--blue);align-items:flex-start}
-.info-callout .icon{flex-shrink:0;font-size:14px;margin-top:1px}
+.info-callout{display:flex;gap:8px;padding:10px 12px;background:var(--blue-light);border-radius:8px;border:1px solid #b0c8e8;margin-bottom:10px;font-size:12px;line-height:1.6;color:var(--blue);align-items:flex-start}
+.info-callout .icon{flex-shrink:0;font-size:13px;margin-top:1px}
 .info-callout .cn{color:#3a6599;display:block;margin-top:2px;font-size:11px}
-.instructor-note{background:var(--ink);color:rgba(255,255,255,0.85);border-radius:var(--radius);padding:15px 17px;margin-bottom:16px;font-size:13px;line-height:1.7}
+.instructor-note{background:var(--ink);color:rgba(255,255,255,0.85);border-radius:var(--radius);padding:14px 16px;margin-bottom:14px;font-size:13px;line-height:1.7}
 .instructor-note .title{font-size:10px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:var(--gold);margin-bottom:6px;display:block}
 .instructor-note .cn{color:rgba(255,255,255,0.5);font-size:12px;margin-top:4px;display:block}
-.selected-summary{display:flex;gap:6px;margin-bottom:12px;flex-wrap:wrap}
-.sel-chip{display:flex;align-items:center;gap:5px;padding:4px 10px;background:var(--gold-light);border:1px solid var(--gold-border);border-radius:20px;font-size:11px;color:var(--gold);font-weight:500}
-.timer-strip{display:flex;align-items:center;gap:8px;padding:8px 13px;background:var(--paper2);border:1px solid var(--paper3);border-radius:8px;margin-bottom:12px;font-size:12px;color:var(--ink3);flex-wrap:wrap}
+.selected-summary{display:flex;gap:6px;margin-bottom:10px;flex-wrap:wrap}
+.sel-chip{display:flex;align-items:center;gap:4px;padding:3px 9px;background:var(--gold-light);border:1px solid var(--gold-border);border-radius:20px;font-size:11px;color:var(--gold);font-weight:500}
+.timer-strip{display:flex;align-items:center;gap:7px;padding:7px 12px;background:var(--paper2);border:1px solid var(--paper3);border-radius:8px;margin-bottom:11px;font-size:12px;color:var(--ink3);flex-wrap:wrap}
 .timer-dot{width:6px;height:6px;border-radius:50%;background:var(--green);flex-shrink:0}
 
-/* ══════════════════════════════
-   INSTRUCTOR DASHBOARD
-══════════════════════════════ */
+/* ══ INSTRUCTOR DASHBOARD ══ */
 .dash-screen{background:var(--paper);min-height:100vh}
-.dash-header{background:var(--ink);padding:14px 24px;display:flex;align-items:center;justify-content:space-between;gap:12px;position:sticky;top:0;z-index:50;box-shadow:0 2px 12px rgba(0,0,0,0.3)}
+.dash-header{background:var(--ink);padding:13px 24px;display:flex;align-items:center;justify-content:space-between;gap:12px;position:sticky;top:0;z-index:50;box-shadow:0 2px 12px rgba(0,0,0,0.3);flex-wrap:wrap}
 .dash-title{font-family:'DM Serif Display','Noto Serif SC',serif;font-size:18px;color:#fff}
 .dash-title span{color:var(--gold-border)}
 .dash-subtitle{font-size:11px;color:var(--ink4);margin-top:1px}
-.dash-actions{display:flex;gap:8px;align-items:center;flex-shrink:0}
-.dash-btn{height:36px;padding:0 14px;border-radius:8px;font-family:inherit;font-size:12px;font-weight:600;cursor:pointer;border:1px solid rgba(255,255,255,0.2);background:rgba(255,255,255,0.08);color:rgba(255,255,255,0.8);transition:all .15s}
-.dash-btn:hover{background:rgba(255,255,255,0.15);color:#fff}
+.dash-actions{display:flex;gap:7px;align-items:center;flex-wrap:wrap}
+.dash-btn{height:34px;padding:0 13px;border-radius:8px;font-family:inherit;font-size:11px;font-weight:600;cursor:pointer;border:1px solid rgba(255,255,255,0.18);background:rgba(255,255,255,0.08);color:rgba(255,255,255,0.75);transition:all .15s;white-space:nowrap}
+.dash-btn:hover{background:rgba(255,255,255,0.16);color:#fff}
+.dash-btn.primary{background:var(--gold);border-color:var(--gold);color:#fff}
+.dash-btn.primary:hover{background:#b07e08}
 .dash-btn.danger{border-color:rgba(168,50,50,0.5);background:rgba(168,50,50,0.2);color:#fca5a5}
 .dash-btn.danger:hover{background:rgba(168,50,50,0.4)}
 
-.dash-main{max-width:1200px;margin:0 auto;padding:24px}
-.dash-stats{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-bottom:24px}
-.stat-card{background:#fff;border:1px solid var(--paper3);border-radius:var(--radius);padding:14px 16px;text-align:center;box-shadow:var(--shadow)}
-.stat-num{font-size:28px;font-weight:700;color:var(--ink)}
-.stat-label{font-size:11px;color:var(--ink3);margin-top:3px}
+/* SESSION SELECTOR */
+.session-bar{background:var(--paper2);border-bottom:1px solid var(--paper3);padding:9px 24px;display:flex;align-items:center;gap:12px;flex-wrap:wrap}
+.session-label{font-size:11px;font-weight:600;color:var(--ink3);letter-spacing:.05em;text-transform:uppercase;flex-shrink:0}
+.session-select{height:32px;padding:0 10px;border:1px solid var(--paper3);border-radius:6px;font-family:inherit;font-size:12px;color:var(--ink2);background:var(--paper);outline:none;cursor:pointer}
+.session-select:focus{border-color:var(--gold-border)}
+.session-badge{font-size:11px;font-weight:600;padding:3px 10px;background:var(--gold-light);border:1px solid var(--gold-border);border-radius:20px;color:var(--gold)}
 
-.teams-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:14px;margin-bottom:24px}
+/* BROADCAST BAR */
+.broadcast-bar{background:var(--paper2);border-bottom:1px solid var(--paper3);padding:8px 24px;display:flex;align-items:center;gap:8px;flex-wrap:wrap}
+.broadcast-input{flex:1;min-width:200px;height:34px;padding:0 12px;border:1px solid var(--paper3);border-radius:6px;font-family:inherit;font-size:12px;color:var(--ink);background:var(--paper);outline:none;transition:border-color .15s}
+.broadcast-input:focus{border-color:var(--gold-border)}
+.broadcast-send{height:34px;padding:0 14px;border-radius:6px;background:var(--blue);color:#fff;border:none;font-family:inherit;font-size:12px;font-weight:600;cursor:pointer;transition:background .15s;white-space:nowrap}
+.broadcast-send:hover{background:#1a3d7a}
+.broadcast-clear{height:34px;padding:0 11px;border-radius:6px;background:none;border:1px solid var(--paper3);color:var(--ink3);font-family:inherit;font-size:11px;cursor:pointer;transition:all .15s}
+.broadcast-clear:hover{border-color:var(--red);color:var(--red)}
+
+.dash-main{max-width:1200px;margin:0 auto;padding:20px}
+.dash-stats{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin-bottom:20px}
+.stat-card{background:#fff;border:1px solid var(--paper3);border-radius:var(--radius);padding:13px 14px;text-align:center;box-shadow:var(--shadow)}
+.stat-num{font-size:26px;font-weight:700;color:var(--ink)}
+.stat-label{font-size:10px;color:var(--ink3);margin-top:2px}
+
+.teams-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(260px,1fr));gap:12px;margin-bottom:20px}
 .team-card{background:#fff;border:1px solid var(--paper3);border-radius:var(--radius);overflow:hidden;box-shadow:var(--shadow);cursor:pointer;transition:all .2s}
 .team-card:hover{box-shadow:var(--shadow-lg);transform:translateY(-2px)}
-.team-card.selected{border-color:var(--gold);box-shadow:0 0 0 3px rgba(200,146,10,0.15)}
-.team-card-header{padding:12px 15px;display:flex;align-items:center;gap:10px;border-bottom:1px solid var(--paper3)}
-.team-emoji{font-size:22px;flex-shrink:0}
+.team-card.selected{border-color:var(--gold);box-shadow:0 0 0 3px rgba(200,146,10,0.12)}
+.team-card-header{padding:11px 14px;display:flex;align-items:center;gap:9px;border-bottom:1px solid var(--paper3)}
+.team-emoji{font-size:20px;flex-shrink:0}
 .team-info{flex:1}
-.team-name{font-size:14px;font-weight:600;color:var(--ink)}
-.team-step{font-size:11px;color:var(--ink3);margin-top:1px}
-.team-status-badge{font-size:10px;font-weight:700;padding:2px 8px;border-radius:20px;letter-spacing:.04em;flex-shrink:0}
+.team-name{font-size:13px;font-weight:600;color:var(--ink)}
+.team-step{font-size:10px;color:var(--ink3);margin-top:1px}
+.team-last-active{font-size:10px;color:var(--ink4);margin-top:1px}
+.team-status-badge{font-size:9px;font-weight:700;padding:2px 7px;border-radius:20px;letter-spacing:.04em;flex-shrink:0}
 .status-waiting{background:var(--red-light);color:var(--red);border:1px solid #f0b8b8}
 .status-ready{background:#fef9c3;color:#854d0e;border:1px solid #fde68a}
 .status-full{background:var(--green-light);color:var(--green);border:1px solid #9ecba8}
 .status-active{background:var(--blue-light);color:var(--blue);border:1px solid #93c5fd}
-.team-card-body{padding:10px 15px}
-.member-list{display:flex;gap:5px;flex-wrap:wrap}
-.member-pill{font-size:11px;padding:2px 8px;background:var(--paper2);border-radius:20px;color:var(--ink2)}
-.no-members{font-size:11px;color:var(--ink4);font-style:italic}
-.team-progress-bar{height:3px;background:var(--paper3);margin:8px 0 2px}
+.team-card-body{padding:9px 14px}
+.member-list{display:flex;gap:4px;flex-wrap:wrap}
+.member-pill{font-size:10px;padding:2px 7px;background:var(--paper2);border-radius:20px;color:var(--ink2)}
+.no-members{font-size:10px;color:var(--ink4);font-style:italic}
+.team-progress-bar{height:3px;background:var(--paper3);margin:7px 0 1px;border-radius:2px}
 .team-progress-fill{height:100%;background:var(--gold);transition:width .3s;border-radius:2px}
-.team-step-label{font-size:10px;color:var(--ink4);text-align:right}
+.team-step-label{font-size:9px;color:var(--ink4);text-align:right}
 
-/* TEAM DETAIL PANEL */
-.team-detail{background:#fff;border:1px solid var(--paper3);border-radius:var(--radius);box-shadow:var(--shadow-lg);margin-top:0}
+/* TEAM DETAIL */
+.team-detail{background:#fff;border:1px solid var(--paper3);border-radius:var(--radius);box-shadow:var(--shadow-lg);margin-top:4px}
 .team-detail.hidden{display:none}
-.detail-header{padding:16px 20px;background:var(--ink);border-radius:var(--radius) var(--radius) 0 0;display:flex;align-items:center;justify-content:space-between;gap:12px}
-.detail-title{font-family:'DM Serif Display','Noto Serif SC',serif;font-size:18px;color:#fff;display:flex;align-items:center;gap:10px}
-.detail-close{background:rgba(255,255,255,0.1);border:1px solid rgba(255,255,255,0.2);color:rgba(255,255,255,0.7);padding:5px 12px;border-radius:6px;cursor:pointer;font-family:inherit;font-size:12px;font-weight:500;transition:all .15s}
+.detail-header{padding:14px 18px;background:var(--ink);border-radius:var(--radius) var(--radius) 0 0;display:flex;align-items:center;justify-content:space-between;gap:10px;flex-wrap:wrap}
+.detail-title{font-family:'DM Serif Display','Noto Serif SC',serif;font-size:17px;color:#fff;display:flex;align-items:center;gap:9px}
+.detail-btns{display:flex;gap:7px;flex-wrap:wrap}
+.detail-close{background:rgba(255,255,255,0.1);border:1px solid rgba(255,255,255,0.2);color:rgba(255,255,255,0.7);padding:5px 11px;border-radius:6px;cursor:pointer;font-family:inherit;font-size:11px;font-weight:500;transition:all .15s}
 .detail-close:hover{background:rgba(255,255,255,0.2);color:#fff}
-.display-btn{background:var(--gold);border:none;color:#fff;padding:7px 16px;border-radius:6px;cursor:pointer;font-family:inherit;font-size:12px;font-weight:600;transition:background .15s}
+.display-btn{background:var(--gold);border:none;color:#fff;padding:6px 14px;border-radius:6px;cursor:pointer;font-family:inherit;font-size:11px;font-weight:600;transition:background .15s}
 .display-btn:hover{background:#b07e08}
-
-.detail-body{padding:20px}
-.detail-section{margin-bottom:20px}
-.detail-section-title{font-size:11px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:var(--gold);margin-bottom:10px;padding-bottom:6px;border-bottom:1px solid var(--paper3)}
-.answer-block{background:var(--paper2);border-radius:8px;padding:12px 14px;margin-bottom:8px;border:1px solid var(--paper3)}
-.answer-question{font-size:11px;font-weight:600;color:var(--ink3);margin-bottom:5px}
-.answer-text{font-size:13px;color:var(--ink2);line-height:1.65;white-space:pre-wrap}
+.detail-body{padding:18px}
+.detail-section{margin-bottom:18px}
+.detail-section-title{font-size:10px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:var(--gold);margin-bottom:8px;padding-bottom:5px;border-bottom:1px solid var(--paper3)}
+.answer-block{background:var(--paper2);border-radius:8px;padding:10px 12px;margin-bottom:7px;border:1px solid var(--paper3)}
+.answer-question{font-size:10px;font-weight:600;color:var(--ink3);margin-bottom:4px}
+.answer-text{font-size:12px;color:var(--ink2);line-height:1.65;white-space:pre-wrap}
 .answer-text.empty{color:var(--ink4);font-style:italic}
-.product-tag{display:inline-flex;align-items:center;gap:5px;font-size:11px;font-weight:600;padding:3px 9px;background:var(--gold-light);border:1px solid var(--gold-border);border-radius:20px;color:var(--gold);margin-bottom:8px}
-.trait-tags{display:flex;gap:5px;flex-wrap:wrap;margin-top:5px}
-.trait-tag{font-size:11px;padding:2px 8px;background:var(--green-light);border:1px solid #9ecba8;border-radius:20px;color:var(--green)}
-.definition-highlight{background:var(--gold-light);border-left:4px solid var(--gold);padding:14px 16px;border-radius:8px;font-size:14px;line-height:1.7;color:var(--ink);font-style:italic}
-.definition-highlight.empty{color:var(--ink4);font-style:italic;background:var(--paper2);border-left-color:var(--paper3)}
+.product-tag{display:inline-flex;align-items:center;gap:4px;font-size:10px;font-weight:600;padding:2px 8px;background:var(--gold-light);border:1px solid var(--gold-border);border-radius:20px;color:var(--gold);margin-bottom:7px}
+.trait-tags{display:flex;gap:4px;flex-wrap:wrap;margin-top:4px}
+.trait-tag{font-size:10px;padding:2px 7px;background:var(--green-light);border:1px solid #9ecba8;border-radius:20px;color:var(--green)}
 
-/* DISPLAY MODE */
-.display-mode{position:fixed;inset:0;background:#1a1814;z-index:300;display:none;flex-direction:column;align-items:center;justify-content:center;padding:40px}
+/* DETAIL DEFINITIONS */
+.detail-def-card{border:1px solid var(--paper3);border-radius:8px;padding:10px 13px;margin-bottom:8px;background:var(--paper)}
+.detail-def-card.winner{border-color:var(--gold);background:var(--gold-light)}
+.detail-def-student{font-size:11px;font-weight:600;color:var(--ink3);margin-bottom:4px;display:flex;align-items:center;gap:6px}
+.detail-def-text{font-size:13px;color:var(--ink2);line-height:1.65;font-style:italic}
+.detail-def-text.empty{color:var(--ink4)}
+.detail-vote-count{font-size:10px;font-weight:600;padding:1px 7px;background:var(--gold-light);color:var(--gold);border-radius:20px;border:1px solid var(--gold-border)}
+.detail-winner-tag{font-size:9px;font-weight:700;padding:1px 6px;background:var(--gold);color:#fff;border-radius:20px}
+
+/* ── DISPLAY MODE ── */
+.display-mode{position:fixed;inset:0;background:#1a1814;z-index:400;display:none;flex-direction:column;overflow-y:auto}
 .display-mode.active{display:flex}
-.display-team-name{font-family:'DM Serif Display','Noto Serif SC',serif;font-size:28px;color:var(--gold-border);margin-bottom:8px}
-.display-members{font-size:14px;color:rgba(255,255,255,0.5);margin-bottom:40px}
-.display-definition{max-width:800px;text-align:center}
-.display-def-label{font-size:11px;letter-spacing:.12em;text-transform:uppercase;color:rgba(255,255,255,0.4);margin-bottom:16px}
-.display-def-text{font-family:'DM Serif Display','Noto Serif SC',serif;font-size:clamp(20px,3vw,32px);color:#fff;line-height:1.4;font-style:italic}
-.display-def-text.empty{color:rgba(255,255,255,0.3);font-size:18px}
-.display-close{position:fixed;top:20px;right:24px;background:rgba(255,255,255,0.1);border:1px solid rgba(255,255,255,0.2);color:rgba(255,255,255,0.7);padding:8px 16px;border-radius:8px;cursor:pointer;font-family:inherit;font-size:13px;font-weight:500;transition:all .15s}
-.display-close:hover{background:rgba(255,255,255,0.2);color:#fff}
+.display-topbar{background:rgba(0,0,0,0.4);padding:14px 32px;display:flex;align-items:center;justify-content:space-between;border-bottom:1px solid rgba(255,255,255,0.08);flex-shrink:0}
+.display-team-info{display:flex;flex-direction:column;gap:3px}
+.display-team-name{font-family:'DM Serif Display','Noto Serif SC',serif;font-size:22px;color:#fff;display:flex;align-items:center;gap:10px}
+.display-members-line{font-size:13px;color:rgba(255,255,255,0.45)}
+.display-close-btn{background:rgba(255,255,255,0.1);border:1px solid rgba(255,255,255,0.2);color:rgba(255,255,255,0.7);padding:8px 18px;border-radius:8px;cursor:pointer;font-family:inherit;font-size:13px;font-weight:500;transition:all .15s;flex-shrink:0}
+.display-close-btn:hover{background:rgba(255,255,255,0.2);color:#fff}
+.display-content{flex:1;padding:32px 40px;max-width:1000px;margin:0 auto;width:100%}
+.display-section{margin-bottom:36px}
+.display-section-title{font-size:11px;letter-spacing:.14em;text-transform:uppercase;color:var(--gold);font-weight:700;margin-bottom:16px;padding-bottom:8px;border-bottom:1px solid rgba(255,255,255,0.1)}
+.display-product-block{margin-bottom:24px}
+.display-product-name{font-size:18px;font-weight:600;color:rgba(255,255,255,0.9);margin-bottom:12px;display:flex;align-items:center;gap:10px}
+.display-qa{margin-bottom:10px}
+.display-q{font-size:13px;color:rgba(255,255,255,0.4);margin-bottom:4px}
+.display-a{font-size:16px;color:rgba(255,255,255,0.85);line-height:1.6;padding:10px 14px;background:rgba(255,255,255,0.05);border-radius:8px;border-left:3px solid rgba(200,146,10,0.5)}
+.display-a.empty{color:rgba(255,255,255,0.25);font-style:italic}
+.display-traits{display:flex;gap:8px;flex-wrap:wrap;margin-top:6px}
+.display-trait{font-size:13px;padding:4px 13px;background:rgba(45,106,63,0.3);border:1px solid rgba(45,106,63,0.4);border-radius:20px;color:#86efac}
+.display-def-card{border:1px solid rgba(255,255,255,0.1);border-radius:10px;padding:14px 18px;margin-bottom:10px;background:rgba(255,255,255,0.04)}
+.display-def-card.winner{border-color:var(--gold-border);background:rgba(200,146,10,0.12)}
+.display-def-student-name{font-size:13px;color:rgba(255,255,255,0.45);margin-bottom:8px;display:flex;align-items:center;gap:8px}
+.display-def-text{font-size:20px;color:#fff;line-height:1.5;font-style:italic}
+.display-def-text.empty{color:rgba(255,255,255,0.25);font-size:16px}
+.display-vote-badge{font-size:11px;padding:2px 8px;background:var(--gold);color:#fff;border-radius:20px;font-weight:600}
+.display-winner-crown{font-size:16px}
 
-/* INSTRUCTOR LOGIN */
+/* ── INSTRUCTOR LOGIN ── */
 .instructor-login{background:var(--ink);min-height:100vh;display:flex;align-items:center;justify-content:center;padding:24px}
-.login-box{background:rgba(255,255,255,0.05);border:1px solid rgba(255,255,255,0.12);border-radius:16px;padding:32px 28px;width:100%;max-width:380px}
-.login-title{font-family:'DM Serif Display','Noto Serif SC',serif;font-size:22px;color:#fff;margin-bottom:6px}
-.login-sub{font-size:13px;color:rgba(255,255,255,0.45);margin-bottom:24px}
-.login-label{font-size:12px;font-weight:600;color:rgba(255,255,255,0.6);margin-bottom:7px;display:block;letter-spacing:.04em}
-.login-input{width:100%;height:var(--touch);padding:0 16px;background:rgba(255,255,255,0.08);border:1.5px solid rgba(255,255,255,0.15);border-radius:10px;color:#fff;font-family:inherit;font-size:15px;outline:none;transition:border-color .2s;letter-spacing:.1em;-webkit-appearance:none;margin-bottom:8px}
+.login-box{background:rgba(255,255,255,0.05);border:1px solid rgba(255,255,255,0.12);border-radius:16px;padding:30px 26px;width:100%;max-width:360px}
+.login-title{font-family:'DM Serif Display','Noto Serif SC',serif;font-size:21px;color:#fff;margin-bottom:4px}
+.login-sub{font-size:12px;color:rgba(255,255,255,0.4);margin-bottom:22px}
+.login-label{font-size:11px;font-weight:600;color:rgba(255,255,255,0.55);margin-bottom:6px;display:block;letter-spacing:.05em;text-transform:uppercase}
+.login-input{width:100%;height:var(--touch);padding:0 15px;background:rgba(255,255,255,0.08);border:1.5px solid rgba(255,255,255,0.15);border-radius:10px;color:#fff;font-family:inherit;font-size:15px;outline:none;transition:border-color .2s;letter-spacing:.1em;-webkit-appearance:none;margin-bottom:7px}
 .login-input:focus{border-color:var(--gold-border)}
-.login-btn{width:100%;height:var(--touch);background:var(--gold);color:#fff;border:none;border-radius:10px;font-family:inherit;font-size:15px;font-weight:600;cursor:pointer;transition:background .15s;margin-top:4px}
+.login-btn{width:100%;height:var(--touch);background:var(--gold);color:#fff;border:none;border-radius:10px;font-family:inherit;font-size:15px;font-weight:600;cursor:pointer;transition:background .15s}
 .login-btn:hover{background:#b07e08}
-.login-error{font-size:12px;color:#fca5a5;text-align:center;margin-top:7px;min-height:18px}
-.login-back{display:block;text-align:center;margin-top:16px;font-size:12px;color:rgba(255,255,255,0.4);text-decoration:none;cursor:pointer;transition:color .15s}
+.login-error{font-size:12px;color:#fca5a5;text-align:center;margin-top:6px;min-height:18px}
+.login-back{display:block;text-align:center;margin-top:14px;font-size:12px;color:rgba(255,255,255,0.35);cursor:pointer;transition:color .15s;text-decoration:none}
 .login-back:hover{color:rgba(255,255,255,0.7)}
 
-footer{background:var(--ink);color:rgba(255,255,255,0.35);text-align:center;padding:14px 20px;font-size:11px;letter-spacing:.03em;line-height:1.8}
-footer a{color:rgba(255,255,255,0.35);text-decoration:none}
+footer{background:var(--ink);color:rgba(255,255,255,0.3);text-align:center;padding:13px 20px;font-size:11px;letter-spacing:.03em;line-height:1.8}
+footer a{color:rgba(255,255,255,0.3);text-decoration:none}
 
-/* RESPONSIVE */
 @media(max-width:600px){
-  .header-inner{padding:9px 14px}
-  .header-title .main{font-size:13px}
+  .orient-bilingual{grid-template-columns:1fr}
+  .orient-lang:first-child{border-right:none;border-bottom:1px solid rgba(255,255,255,0.1)}
+  .back-inner{padding:0 14px}
+  .header-inner{padding:9px 14px}.header-title .main{font-size:13px}
   .hbadge.outline{display:none}
-  .hero{padding:28px 16px 24px}
-  .main{padding:18px 14px 70px}
+  .hero{padding:26px 16px 22px}
+  .main{padding:16px 14px 70px}
   .product-grid{grid-template-columns:repeat(2,1fr)}
   .trait-grid{grid-template-columns:1fr}
   .bilingual-card{grid-template-columns:1fr}
@@ -453,85 +492,114 @@ footer a{color:rgba(255,255,255,0.35);text-decoration:none}
   .step-label-en,.step-label-cn{display:none}
   .input-row{grid-template-columns:1fr}
   .input-label{border-bottom:1px solid var(--paper3)}
-  .analysis-table thead th:nth-child(3),.analysis-table tbody td:nth-child(3){display:none}
   .dash-stats{grid-template-columns:repeat(2,1fr)}
   .teams-grid{grid-template-columns:1fr}
-  .dash-main{padding:14px}
-  .nav-btn{font-size:12px;padding:0 12px;min-width:70px}
+  .dash-main{padding:12px}
+  .display-content{padding:20px 16px}
+  .display-def-text{font-size:16px}
+  .display-product-name{font-size:15px}
+  .display-a{font-size:14px}
 }
 </style>
 </head>
 <body>
 
-<!-- ══════════════════════════════════════
-     SCREEN 1: JOIN / INSTRUCTOR ENTRY
-══════════════════════════════════════ -->
-<div class="screen active" id="screen-join">
-  <div class="join-screen">
-    <div class="join-box">
-      <div class="join-logo">FIN 220 · Business Finance · 公司金融</div>
-      <div class="join-title">什么是金融?<br><span>What is Finance?</span></div>
-      <div class="join-subtitle">Live Group Activity · 实时小组探究活动</div>
+<!-- ══ OFFLINE BANNER ══ -->
+<div class="offline-banner" id="offlineBanner">⚠️ Connection lost — reconnecting · 连接断开，正在重连…</div>
 
-      <div class="join-field">
-        <label class="join-label">YOUR NAME · 你的姓名</label>
-        <input class="join-input" id="joinName" type="text" placeholder="Enter your first name · 请输入你的名字" maxlength="30" autocomplete="off">
+<!-- ══ BROADCAST BANNER (student) ══ -->
+<div class="broadcast-banner" id="broadcastBanner"></div>
+
+<!-- ══════════════════════════
+     SCREEN 1: ORIENTATION
+══════════════════════════ -->
+<div class="screen active" id="screen-orientation">
+  <div class="orient-screen">
+    <div class="orient-topbar">
+      <div class="orient-logo">FIN 220 · <span>Business Finance</span> · Stamford International University</div>
+      <div class="conn-wrap"><div class="conn-dot" id="connDot1"></div><span class="conn-label" id="connLabel1">Connecting…</span></div>
+    </div>
+    <div class="orient-body">
+      <div class="orient-eyebrow">Inductive Inquiry Activity · 归纳式探究活动</div>
+      <div class="orient-title">什么是金融？<br><span>What is Finance?</span></div>
+      <div class="orient-subtitle">Live Group Activity · 实时小组探究活动 &nbsp;|&nbsp; 25–30 min · 3–5 students per team</div>
+
+      <div class="orient-card">
+        <div class="orient-card-title">About this activity · 活动说明</div>
+        <div class="orient-bilingual">
+          <div class="orient-lang">
+            <span class="orient-lang-flag">🇬🇧 English</span>
+            Your instructor has assigned you to a team. This activity has <strong style="color:rgba(255,255,255,0.9)">no single correct answer</strong>. By exploring three everyday financial products together, you will <em>discover</em> a definition of finance yourselves.
+            <br><br>Your teammates' answers sync to your screen in real time — work together!
+          </div>
+          <div class="orient-lang">
+            <span class="orient-lang-flag">🇨🇳 中文</span>
+            老师已为你分配小组。本活动<strong style="color:rgba(255,255,255,0.9)">没有唯一标准答案</strong>。通过一起探究3种日常金融产品，你们将<em>自己归纳</em>出金融的定义。
+            <br><br>队友的答案会实时同步到你的屏幕——共同协作！
+          </div>
+        </div>
+
+        <div class="orient-card-title" style="margin-top:14px">How it works · 活动流程</div>
+        <div class="orient-flow">
+          <div class="orient-flow-item"><div class="orient-num">①</div><div><strong>Pick 3 financial products</strong> from daily life — as different as possible.<div class="orient-cn">从日常生活中选3种差异较大的金融产品。</div></div></div>
+          <div class="orient-flow-item"><div class="orient-num">②</div><div><strong>Analyse each product</strong> — who uses it, what moves, what each party gains.<div class="orient-cn">分析每种产品——谁在使用、流动的是什么、各方获得什么。</div></div></div>
+          <div class="orient-flow-item"><div class="orient-num">③</div><div><strong>Find what all three share</strong> — the most important thinking step.<div class="orient-cn">找出3种产品的共同之处——最关键的思考步骤。</div></div></div>
+          <div class="orient-flow-item"><div class="orient-num">④</div><div><strong>Write and vote for your team definition</strong> of finance.<div class="orient-cn">各自写出定义，然后投票选出小组最佳定义。</div></div></div>
+        </div>
       </div>
 
-      <div class="join-field">
-        <label class="join-label">SELECT YOUR TEAM · 选择小组</label>
-        <select class="join-select" id="joinTeam" onchange="previewTeam()">
-          <option value="">— Choose your team · 选择小组 —</option>
-        </select>
-      </div>
+      <button class="orient-join-btn" onclick="showJoinOverlay()">Join Activity · 加入活动 →</button>
+      <div class="orient-tip">💡 Tip: Don't define "finance" right away — let it emerge from your discussion · 不要急于定义，让答案从讨论中浮现</div>
 
-      <div class="team-status-preview" id="teamPreview">Select a team to see its status · 选择小组查看当前状态</div>
-
-      <button class="join-btn" id="joinBtn" onclick="joinTeam()" disabled>
-        Join Activity · 加入活动
-      </button>
-      <div class="join-error" id="joinError"></div>
-
-      <div style="margin-top:20px;padding-top:18px;border-top:1px solid rgba(255,255,255,0.1);text-align:center">
-        <a style="font-size:12px;color:rgba(255,255,255,0.35);cursor:pointer;text-decoration:none" onclick="showInstructorLogin()">
-          🔒 Instructor Dashboard · 教师控制台
-        </a>
+      <div style="margin-top:20px;text-align:center">
+        <a style="font-size:11px;color:rgba(255,255,255,0.25);cursor:pointer" onclick="showInstructorLogin()">🔒 Instructor Dashboard · 教师控制台</a>
       </div>
     </div>
   </div>
 </div>
 
-<!-- ══════════════════════════════════════
-     SCREEN 2: INSTRUCTOR LOGIN
-══════════════════════════════════════ -->
-<div class="screen" id="screen-instructor-login">
-  <div class="instructor-login">
-    <div class="login-box">
-      <div class="login-title">Instructor Dashboard</div>
-      <div class="login-sub">教师控制台 · Enter password to access · 请输入密码</div>
-      <label class="login-label">PASSWORD · 密码</label>
-      <input class="login-input" id="instrPw" type="password" placeholder="• • • • • • •" maxlength="20"
-        onkeydown="if(event.key==='Enter')checkInstructorLogin()">
-      <button class="login-btn" onclick="checkInstructorLogin()">Access Dashboard · 进入控制台</button>
-      <div class="login-error" id="instrLoginError"></div>
-      <a class="login-back" onclick="showScreen('screen-join')">← Back to Student Join · 返回学生加入页</a>
+<!-- ══ JOIN OVERLAY ══ -->
+<div class="join-overlay" id="joinOverlay">
+  <div class="join-box">
+    <div class="join-box-title">Join Your Team · 加入小组</div>
+    <div class="join-box-sub">Enter your name and select your assigned team · 输入姓名并选择老师分配的小组</div>
+    <div class="join-field">
+      <label class="join-label">Your name · 你的姓名</label>
+      <input class="join-input" id="joinName" type="text" placeholder="First name · 名字" maxlength="30" autocomplete="off">
     </div>
+    <div class="join-field">
+      <label class="join-label">Your team · 你的小组</label>
+      <select class="join-select" id="joinTeam" onchange="previewTeam()"></select>
+      <div class="team-status-preview" id="teamPreview">Select a team · 选择小组</div>
+    </div>
+    <button class="join-btn" id="joinBtn" onclick="joinTeam()" disabled>Join · 加入</button>
+    <div class="join-error" id="joinError"></div>
+    <span class="join-cancel" onclick="hideJoinOverlay()">← Back to instructions · 返回活动说明</span>
   </div>
 </div>
 
-<!-- ══════════════════════════════════════
-     SCREEN 3: STUDENT ACTIVITY
-══════════════════════════════════════ -->
+<!-- ══ JOIN SUCCESS ══ -->
+<div class="join-success" id="joinSuccess">
+  <div class="success-icon">✅</div>
+  <div class="success-title">You're in! · 加入成功！</div>
+  <div class="success-team" id="successTeamName"></div>
+  <div class="success-desc">Waiting for the activity to load · 正在加载活动…<br><span style="font-size:12px;color:rgba(255,255,255,0.35)">Your team needs at least 3 members to start · 至少需要3名成员才能开始</span></div>
+  <div class="success-spinner"></div>
+</div>
+
+<!-- ══════════════════════════
+     SCREEN 2: ACTIVITY
+══════════════════════════ -->
 <div class="screen" id="screen-activity">
-  <!-- Back bar -->
   <div class="back-bar">
     <div class="back-inner">
-      <a href="https://hsuanming.github.io" class="back-btn"><span>←</span> Back to Home · 返回主页</a>
-      <div class="team-badge-top" id="topTeamBadge"></div>
+      <a href="https://hsuanming.github.io" class="back-btn">← Back to Home · 返回主页</a>
+      <div class="back-right">
+        <div class="team-badge-top" id="topTeamBadge"></div>
+        <div class="conn-wrap"><div class="conn-dot" id="connDot2"></div><span class="conn-label" id="connLabel2">Connecting…</span></div>
+      </div>
     </div>
   </div>
-
-  <!-- Sticky header -->
   <header class="site-header">
     <div class="header-inner">
       <div class="header-title">
@@ -541,305 +609,263 @@ footer a{color:rgba(255,255,255,0.35);text-decoration:none}
       <div class="header-meta">
         <span class="hbadge gold">实时活动</span>
         <span class="hbadge outline">⏱ 25–30 min</span>
-        <span class="hbadge green" id="liveIndicator">● LIVE</span>
+        <span class="hbadge green">● LIVE</span>
       </div>
     </div>
   </header>
-
-  <!-- Team members bar -->
   <div class="team-bar">
     <div class="team-bar-inner">
-      <div class="team-bar-label">Team · 小组:</div>
+      <div class="team-bar-label">Team:</div>
       <div class="member-chips" id="memberChips"></div>
       <div id="teamReadyMsg"></div>
     </div>
   </div>
-
-  <!-- Hero -->
   <section class="hero">
     <div class="hero-inner">
-      <div class="hero-eyebrow">Live Inductive Inquiry · 实时归纳探究活动</div>
+      <div class="hero-eyebrow">Live Inductive Inquiry · 实时归纳探究</div>
       <h1>Discover <span>Finance</span><br>探索金融的本质</h1>
       <p class="hero-sub">没有标准答案，只有你们自己的发现 · No right answer — only your own discovery</p>
       <div class="hero-pills">
         <span class="hero-pill">3 Products · 3种产品</span>
-        <span class="hero-pill">1 Definition · 1个定义</span>
         <span class="hero-pill">Live Sync · 实时同步</span>
-        <span class="hero-pill">Discover · 发现</span>
+        <span class="hero-pill">Vote · 投票</span>
       </div>
     </div>
   </section>
 
-  <!-- Waiting overlay -->
   <div class="waiting-overlay" id="waitingOverlay">
     <div class="waiting-icon">⏳</div>
-    <div class="waiting-title">Waiting for teammates · 等待队友加入</div>
-    <div class="waiting-desc">
-      Your activity will start once your team has at least <strong style="color:#fff">3 members</strong>.<br>
-      <span style="color:rgba(255,255,255,0.4)">活动需要至少<strong style="color:rgba(255,255,255,0.7)">3名成员</strong>才能开始。</span>
-    </div>
+    <div class="waiting-title">Waiting for teammates · 等待队友</div>
+    <div class="waiting-desc">Activity starts when your team has at least <strong style="color:#fff">3 members</strong> · 至少<strong style="color:#fff">3名成员</strong>才能开始</div>
     <div class="waiting-members" id="waitingMemberSlots"></div>
     <div class="waiting-counter" id="waitingCounter"></div>
   </div>
 
-  <!-- Progress bar -->
   <div class="progress-bar-wrap">
     <div class="progress-bar">
-      <button class="step-btn active" onclick="goStep(0)">
-        <div class="step-circle" id="sc0">1</div>
-        <div class="step-labels"><span class="step-label-en">Orientation</span><span class="step-label-cn">活动说明</span></div>
-      </button>
-      <button class="step-btn" onclick="goStep(1)">
-        <div class="step-circle" id="sc1">2</div>
-        <div class="step-labels"><span class="step-label-en">Products</span><span class="step-label-cn">选择产品</span></div>
-      </button>
-      <button class="step-btn" onclick="goStep(2)">
-        <div class="step-circle" id="sc2">3</div>
-        <div class="step-labels"><span class="step-label-en">Analyse</span><span class="step-label-cn">如何运作</span></div>
-      </button>
-      <button class="step-btn" onclick="goStep(3)">
-        <div class="step-circle" id="sc3">4</div>
-        <div class="step-labels"><span class="step-label-en">Common</span><span class="step-label-cn">共同点</span></div>
-      </button>
-      <button class="step-btn" onclick="goStep(4)">
-        <div class="step-circle" id="sc4">5</div>
-        <div class="step-labels"><span class="step-label-en">Define</span><span class="step-label-cn">定义金融</span></div>
-      </button>
-      <button class="step-btn" onclick="goStep(5)">
-        <div class="step-circle" id="sc5">6</div>
-        <div class="step-labels"><span class="step-label-en">Debrief</span><span class="step-label-cn">全班讨论</span></div>
-      </button>
+      <button class="step-btn active" onclick="tryGoStep(0)" id="stepBtn0"><div class="step-circle" id="sc0">1</div><div class="step-labels"><span class="step-label-en">Orientation</span><span class="step-label-cn">说明</span></div></button>
+      <button class="step-btn locked" onclick="tryGoStep(1)" id="stepBtn1"><div class="step-circle" id="sc1">2</div><div class="step-labels"><span class="step-label-en">Products</span><span class="step-label-cn">产品</span></div></button>
+      <button class="step-btn locked" onclick="tryGoStep(2)" id="stepBtn2"><div class="step-circle" id="sc2">3</div><div class="step-labels"><span class="step-label-en">Analyse</span><span class="step-label-cn">分析</span></div></button>
+      <button class="step-btn locked" onclick="tryGoStep(3)" id="stepBtn3"><div class="step-circle" id="sc3">4</div><div class="step-labels"><span class="step-label-en">Common</span><span class="step-label-cn">共同点</span></div></button>
+      <button class="step-btn locked" onclick="tryGoStep(4)" id="stepBtn4"><div class="step-circle" id="sc4">5</div><div class="step-labels"><span class="step-label-en">Define</span><span class="step-label-cn">定义</span></div></button>
+      <button class="step-btn locked" onclick="tryGoStep(5)" id="stepBtn5"><div class="step-circle" id="sc5">6</div><div class="step-labels"><span class="step-label-en">Debrief</span><span class="step-label-cn">讨论</span></div></button>
     </div>
   </div>
 
   <main class="main">
-
   <!-- PANEL 0 -->
   <div class="panel active" id="panel0">
     <div class="panel-step-tag"><span class="dot"></span>Step 1 · 第一步</div>
     <div class="panel-title">Welcome &amp; Orientation</div>
     <div class="panel-title-cn">活动说明</div>
     <div class="bilingual-card">
-      <div class="bilingual-col">
-        <span class="lang-flag">🇬🇧 English</span>
-        Your team has been assigned by your instructor. This activity has <strong>no single correct answer</strong>. By exploring three everyday financial products together, you will <em>discover</em> a definition of finance yourselves.
-        <br><br>Your teammates' answers sync to your screen in real time — work together!
-      </div>
-      <div class="bilingual-col gold-tint">
-        <span class="lang-flag">🇨🇳 中文</span>
-        老师已为你分配小组。本活动<strong>没有唯一的标准答案</strong>。通过一起探究3种日常金融产品，你们将<em>自己归纳</em>出金融的定义。
-        <br><br>队友的答案会实时同步到你的屏幕——共同协作！
-      </div>
+      <div class="bilingual-col"><span class="lang-flag">🇬🇧 English</span>Your team has been assigned by your instructor. This activity has <strong>no single correct answer</strong>. By exploring three everyday financial products together, you will <em>discover</em> a definition of finance yourselves.<br><br>Your teammates' answers sync to your screen in real time!</div>
+      <div class="bilingual-col gold-tint"><span class="lang-flag">🇨🇳 中文</span>老师已为你分配小组。本活动<strong>没有唯一标准答案</strong>。通过一起探究3种日常金融产品，你们将<em>自己归纳</em>出金融的定义。<br><br>队友的答案会实时同步到你的屏幕！</div>
     </div>
-    <div class="panel-step-tag" style="margin-bottom:9px"><span class="dot"></span>How This Works · 活动流程</div>
+    <div class="panel-step-tag" style="margin-bottom:8px"><span class="dot"></span>Activity Flow · 活动流程</div>
     <div class="step-flow">
       <div class="flow-item"><div class="flow-num">①</div><div><strong>Pick 3 financial products</strong> from daily life — as different as possible.<div class="flow-cn">从日常生活中选3种差异较大的金融产品。</div></div></div>
       <div class="flow-item"><div class="flow-num">②</div><div><strong>Analyse each product</strong> — who uses it, what moves, what each party gains.<div class="flow-cn">分析每种产品——谁在使用、流动的是什么、各方获得什么。</div></div></div>
       <div class="flow-item"><div class="flow-num">③</div><div><strong>Find what all three share</strong> — the most important thinking step.<div class="flow-cn">找出3种产品的共同之处——最关键的思考步骤。</div></div></div>
-      <div class="flow-item"><div class="flow-num">④</div><div><strong>Write your definition</strong> of finance in one sentence.<div class="flow-cn">用一句话写出你们的金融定义。</div></div></div>
+      <div class="flow-item"><div class="flow-num">④</div><div><strong>Write your definition</strong>, see teammates', then vote for the best one.<div class="flow-cn">各自写出定义，看队友的定义，然后投票选出最佳定义。</div></div></div>
     </div>
+    <div class="info-callout"><span class="icon">💡</span><div>Don't define "finance" right away — let it emerge naturally from your discussion.<span class="cn">不要急于定义"金融"——让答案从讨论中自然浮现。</span></div></div>
     <div class="nav-bar"><span></span><button class="nav-btn primary" onclick="goStep(1)">Start · 开始 →</button></div>
   </div>
-
   <!-- PANEL 1 -->
   <div class="panel" id="panel1">
     <div class="panel-step-tag"><span class="dot"></span>Step 2 · 第二步</div>
     <div class="panel-title">Choose Your 3 Products</div>
     <div class="panel-title-cn">选择3种金融产品 <span class="sync-indicator" id="syncP1">● synced</span></div>
-    <div class="bilingual-card" style="margin-bottom:12px">
-      <div class="bilingual-col"><span class="lang-flag">🇬🇧 English</span>Pick <strong>exactly 3</strong> different products. Choose products that are <em>as different as possible</em>. Your selection syncs to all teammates.</div>
-      <div class="bilingual-col gold-tint"><span class="lang-flag">🇨🇳 中文</span>选择<strong>恰好3种</strong>不同的产品。尽量选<em>差异较大</em>的产品。你的选择会同步给所有队友。</div>
+    <div class="bilingual-card" style="margin-bottom:11px">
+      <div class="bilingual-col"><span class="lang-flag">🇬🇧 English</span>Pick <strong>exactly 3</strong> different products — as different as possible. Your selection syncs to all teammates.</div>
+      <div class="bilingual-col gold-tint"><span class="lang-flag">🇨🇳 中文</span>选择<strong>恰好3种</strong>不同的产品，尽量差异大。你的选择会同步给所有队友。</div>
     </div>
     <div class="product-grid" id="productGrid"></div>
     <div class="sel-status" id="selStatus">请选择3种产品 · Please select 3 products</div>
-    <div class="nav-bar">
-      <button class="nav-btn" onclick="goStep(0)">← Back</button>
-      <button class="nav-btn primary" onclick="goStep(2)">Next · 下一步 →</button>
-    </div>
+    <div class="nav-bar"><button class="nav-btn" onclick="goStep(0)">← Back</button><button class="nav-btn primary" onclick="goStep(2)">Next · 下一步 →</button></div>
   </div>
-
   <!-- PANEL 2 -->
   <div class="panel" id="panel2">
     <div class="panel-step-tag"><span class="dot"></span>Step 3 · 第三步</div>
     <div class="panel-title">How Is Each Product Used?</div>
     <div class="panel-title-cn">每种产品如何使用？<span class="sync-indicator" id="syncP2">● synced</span></div>
-    <div class="bilingual-card" style="margin-bottom:12px">
-      <div class="bilingual-col"><span class="lang-flag">🇬🇧 English</span>Discuss and type answers for each product. <strong>~2 min per product.</strong> Answers sync live to your whole team.</div>
-      <div class="bilingual-col gold-tint"><span class="lang-flag">🇨🇳 中文</span>讨论后填写每种产品的答案。<strong>每种约2分钟。</strong>答案会实时同步给全组。</div>
+    <div class="bilingual-card" style="margin-bottom:11px">
+      <div class="bilingual-col"><span class="lang-flag">🇬🇧 English</span>Discuss and type answers for each product. <strong>~2 min per product.</strong> Answers sync live — you can see who wrote what.</div>
+      <div class="bilingual-col gold-tint"><span class="lang-flag">🇨🇳 中文</span>讨论后填写每种产品的答案。<strong>每种约2分钟。</strong>答案实时同步，可以看到谁填写了什么。</div>
     </div>
     <div class="timer-strip"><div class="timer-dot"></div>建议时间 · Suggested: <strong style="color:var(--ink);margin-left:4px">6–8 min total · 共6–8分钟</strong></div>
     <div id="productInputs"></div>
-    <div class="nav-bar">
-      <button class="nav-btn" onclick="goStep(1)">← Back</button>
-      <button class="nav-btn primary" onclick="goStep(3)">Next · 下一步 →</button>
-    </div>
+    <div class="nav-bar"><button class="nav-btn" onclick="goStep(1)">← Back</button><button class="nav-btn primary" onclick="goStep(3)">Next · 下一步 →</button></div>
   </div>
-
   <!-- PANEL 3 -->
   <div class="panel" id="panel3">
     <div class="panel-step-tag"><span class="dot"></span>Step 4 · 第四步</div>
     <div class="panel-title">Find the Common Thread</div>
-    <div class="panel-title-cn">寻找共同之处<span class="sync-indicator" id="syncP3">● synced</span></div>
-    <div class="bilingual-card" style="margin-bottom:12px">
-      <div class="bilingual-col"><span class="lang-flag">🇬🇧 English</span>Check traits that apply to <strong>all three</strong> products. Discuss with your team — your selections sync live.</div>
-      <div class="bilingual-col gold-tint"><span class="lang-flag">🇨🇳 中文</span>勾选<strong>三种产品都具备</strong>的特征。与队友讨论——你的选择实时同步。</div>
+    <div class="panel-title-cn">寻找共同之处 <span class="sync-indicator" id="syncP3">● synced</span></div>
+    <div class="bilingual-card" style="margin-bottom:11px">
+      <div class="bilingual-col"><span class="lang-flag">🇬🇧 English</span>Check traits that apply to <strong>all three</strong> products. Discuss — your selections sync live.</div>
+      <div class="bilingual-col gold-tint"><span class="lang-flag">🇨🇳 中文</span>勾选<strong>三种产品都具备</strong>的特征。与队友讨论——实时同步。</div>
     </div>
-    <div id="selectedProductsDisplay3" style="margin-bottom:10px"></div>
+    <div id="selectedProductsDisplay3" style="margin-bottom:9px"></div>
     <div class="trait-grid" id="traitGrid"></div>
     <div class="synthesis-box">
       <div class="synthesis-title">Core Question · 核心问题</div>
       <div class="synthesis-q">What do all financial products ultimately do? <span class="cn">所有金融产品最终在做什么？</span></div>
-      <div class="synthesis-hint">💡 Think: <strong>who has resources now</strong> vs <strong>who needs them</strong> — across time or space. · 思考：谁现在有资源 vs 谁需要资源——跨时间或跨空间。</div>
+      <div class="synthesis-hint">💡 Think: <strong>who has resources now</strong> vs <strong>who needs them</strong> — across time or space. · 谁现在有资源 vs 谁需要资源——跨时间或跨空间。</div>
     </div>
-    <div class="nav-bar">
-      <button class="nav-btn" onclick="goStep(2)">← Back</button>
-      <button class="nav-btn primary" onclick="goStep(4)">Next · 下一步 →</button>
-    </div>
+    <div class="nav-bar"><button class="nav-btn" onclick="goStep(2)">← Back</button><button class="nav-btn primary" onclick="goStep(4)">Next · 下一步 →</button></div>
   </div>
-
   <!-- PANEL 4 -->
   <div class="panel" id="panel4">
     <div class="panel-step-tag"><span class="dot"></span>Step 5 · 第五步</div>
-    <div class="panel-title">Your Group's Definition</div>
-    <div class="panel-title-cn">写出你们小组的金融定义<span class="sync-indicator" id="syncP4">● synced</span></div>
-    <div class="bilingual-card" style="margin-bottom:16px">
-      <div class="bilingual-col"><span class="lang-flag">🇬🇧 English</span>Write <strong>one sentence</strong> defining finance. Write yours first, then compare with teammates. Your definition syncs to the whole team.</div>
-      <div class="bilingual-col gold-tint"><span class="lang-flag">🇨🇳 中文</span>用<strong>一句话</strong>写出金融的定义。先写出自己的，再与队友比较。你的定义会同步给全组。</div>
+    <div class="panel-title">Define Finance &amp; Vote</div>
+    <div class="panel-title-cn">写出定义并投票 <span class="sync-indicator" id="syncP4">● synced</span></div>
+    <div class="bilingual-card" style="margin-bottom:14px">
+      <div class="bilingual-col"><span class="lang-flag">🇬🇧 English</span>Each student writes their own definition. Then see all teammates' definitions and <strong>vote for the best one</strong> as your team's official definition.</div>
+      <div class="bilingual-col gold-tint"><span class="lang-flag">🇨🇳 中文</span>每位同学各自写出定义。然后查看队友的定义，<strong>投票选出最佳定义</strong>作为小组的官方定义。</div>
     </div>
     <div class="definition-input-wrap">
       <div class="def-input-label">✍️ Your definition: <span class="cn">你的一句话定义：</span></div>
-      <textarea class="def-textarea" id="groupDefinition" placeholder="Write your one-sentence definition here... · 在此写下你的一句话定义……"
-        oninput="updateWordCount(this);syncDefinition(this.value)"></textarea>
+      <textarea class="def-textarea" id="myDefinition" placeholder="Write your one-sentence definition here... · 在此写下你的一句话定义……"
+        oninput="updateWordCount(this);syncMyDefinition(this.value)"></textarea>
       <div class="def-word-count" id="defWordCount">0 words · 0字</div>
+    </div>
+    <div class="team-defs-section">
+      <div class="team-defs-title">👥 All Team Definitions · 全组定义 <span style="font-size:10px;font-weight:400;color:var(--ink4)">(Vote for the best one · 投票选出最佳)</span></div>
+      <div id="teamDefsContainer"></div>
     </div>
     <div class="accordion">
       <button class="accordion-header" onclick="toggleAccordion('acc1')">
-        <div><span>Scaffold: What makes a good definition? · 好的定义应包含哪些要素？</span><span class="cn">（点击展开）</span></div>
+        <div><span>Scaffold: Good definition elements · 好的定义要素</span><span class="cn">（点击展开）</span></div>
         <span class="accordion-arrow" id="acc1-arrow">▸</span>
       </button>
       <div class="accordion-body" id="acc1">
-        A strong definition includes: <ul>
+        <ul>
           <li><strong>Resources (capital/money)</strong> — what is being moved · <span style="color:var(--ink4)">资源（资本/钱）</span></li>
           <li><strong>Allocation</strong> — from those who have to those who need · <span style="color:var(--ink4)">配置——从拥有者到需要者</span></li>
-          <li><strong>Time and/or space</strong> — now vs. future, or across parties/regions · <span style="color:var(--ink4)">时间/空间——跨越现在与未来，或不同个人/地区</span></li>
+          <li><strong>Time and/or space</strong> — now vs. future, or across parties · <span style="color:var(--ink4)">时间/空间——跨越现在与未来，或不同个人/地区</span></li>
         </ul>
       </div>
     </div>
-    <div class="locked-accordion" style="margin-top:9px">
-      <button class="locked-header" onclick="toggleLocked('lock1')">
-        <div><span>🔒 Reference Definition · 参考定义</span><span class="hcn">需要密码 · Password required</span></div>
-        <span class="lock-badge">LOCKED · 已锁定</span>
-      </button>
+    <div class="locked-accordion" style="margin-top:8px">
+      <button class="locked-header" onclick="toggleLocked('lock1')"><div><span>🔒 Reference Definition · 参考定义</span><span class="hcn">需要密码 · Password required</span></div><span class="lock-badge">LOCKED</span></button>
       <div class="locked-body" id="lock1">
         <div class="pw-gate" id="lock1-gate">
           <div class="pw-gate-title"><span>🔑</span> Enter password · 输入密码</div>
-          <div class="pw-row">
-            <input class="pw-input" type="password" id="pw1" placeholder="••••" maxlength="10"
-              onkeydown="if(event.key==='Enter')checkPw('lock1','pw1','lock1-err','lock1-content')" onfocus="this.select()">
-            <button class="pw-btn" onclick="checkPw('lock1','pw1','lock1-err','lock1-content')">Unlock · 解锁</button>
-          </div>
-          <div class="pw-hint">Password provided by instructor · 请输入教师提供的密码</div>
+          <div class="pw-row"><input class="pw-input" type="password" id="pw1" placeholder="••••" maxlength="10" onkeydown="if(event.key==='Enter')checkPw('lock1','pw1','lock1-err','lock1-content')" onfocus="this.select()"><button class="pw-btn" onclick="checkPw('lock1','pw1','lock1-err','lock1-content')">Unlock · 解锁</button></div>
+          <div class="pw-hint">Password provided by instructor · 教师提供的密码</div>
           <div class="pw-error" id="lock1-err">❌ Incorrect · 密码错误</div>
         </div>
         <div class="locked-content" id="lock1-content">
-          <div style="padding:12px 14px;background:var(--gold-light);border-radius:8px;border-left:4px solid var(--gold);margin-bottom:12px">
-            <strong>Finance is the mechanism for allocating economic resources (capital/money) across time and space.</strong>
-          </div>
+          <div style="padding:11px 13px;background:var(--gold-light);border-radius:8px;border-left:4px solid var(--gold);margin-bottom:11px"><strong>Finance is the mechanism for allocating economic resources (capital/money) across time and space.</strong></div>
           <ul><li><strong>Across time:</strong> present ↔ future (saving, borrowing, investing)</li><li><strong>Across space:</strong> between individuals, firms, industries, or regions</li></ul>
-          <div class="cn-block"><div style="padding:12px 14px;background:var(--gold-light);border-radius:8px;border-left:4px solid var(--gold);margin-bottom:10px"><strong>金融是配置经济资源（资本/钱）的机器，帮助人们实现跨越时间、跨越空间的资源配置。</strong></div>
-          <ul><li><strong>跨越时间：</strong>资源在现在和未来之间的配置（储蓄、借款、投资）</li><li><strong>跨越空间：</strong>资源在不同个人、企业、产业、不同地区之间的配置</li></ul></div>
+          <div class="cn-block"><div style="padding:11px 13px;background:var(--gold-light);border-radius:8px;border-left:4px solid var(--gold);margin-bottom:9px"><strong>金融是配置经济资源（资本/钱）的机器，帮助人们实现跨越时间、跨越空间的资源配置。</strong></div><ul><li><strong>跨越时间：</strong>资源在现在和未来之间的配置（储蓄、借款、投资）</li><li><strong>跨越空间：</strong>资源在不同个人、企业、产业、地区之间的配置</li></ul></div>
         </div>
       </div>
     </div>
-    <div class="nav-bar">
-      <button class="nav-btn" onclick="goStep(3)">← Back</button>
-      <button class="nav-btn primary" onclick="goStep(5)">Next · 下一步 →</button>
-    </div>
+    <div class="nav-bar"><button class="nav-btn" onclick="goStep(3)">← Back</button><button class="nav-btn primary" onclick="goStep(5)">Next · 下一步 →</button></div>
   </div>
-
   <!-- PANEL 5 -->
   <div class="panel" id="panel5">
     <div class="panel-step-tag"><span class="dot"></span>Step 6 · 第六步</div>
     <div class="panel-title">Class Debrief &amp; Reflection</div>
     <div class="panel-title-cn">全班讨论与反思</div>
-    <div class="instructor-note">
-      <span class="title">📋 Instructor Guide · 教师引导提示</span>
-      Use the Instructor Dashboard to display each team's definition. Guide the class to notice whether definitions mention: <strong>resources, allocation, time/space</strong>.
-      <span class="cn">使用教师控制台展示各组定义。引导学生观察是否包含"资源""配置""时间/空间"三要素。</span>
-    </div>
+    <div class="instructor-note"><span class="title">📋 Instructor Guide · 教师引导提示</span>Use the Instructor Dashboard to display each team's winning definition. Guide the class to notice whether definitions mention: <strong>resources, allocation, time/space</strong>.<span class="cn">使用教师控制台展示各组获胜定义。引导学生观察是否包含"资源""配置""时间/空间"三要素。</span></div>
     <div class="debrief-questions">
       <div class="dq-item"><div class="dq-num">Q1</div><div class="dq-text">Which product was hardest to explain? What did that reveal?<span class="cn">哪种产品最难解释？这揭示了什么？</span></div></div>
       <div class="dq-item"><div class="dq-num">Q2</div><div class="dq-text">Did teams describe the same product differently? Why?<span class="cn">不同小组对同一产品描述不同？为什么？</span></div></div>
-      <div class="dq-item"><div class="dq-num">Q3</div><div class="dq-text">Can you think of something that looks financial but does <em>not</em> reallocate resources?<span class="cn">有没有看似金融产品但不涉及资源配置的例子？</span></div></div>
+      <div class="dq-item"><div class="dq-num">Q3</div><div class="dq-text">Can you think of something that <em>looks</em> financial but does <strong>not</strong> reallocate resources?<span class="cn">有没有看似金融但实际不涉及资源配置的例子？</span></div></div>
       <div class="dq-item"><div class="dq-num">Q4</div><div class="dq-text">Why does finance exist? What would happen without it?<span class="cn">金融为什么存在？没有它社会会怎样？</span></div></div>
     </div>
     <div class="rubric-grid">
       <div class="rubric-card"><div class="rubric-score">/5</div><div class="rubric-max">pts</div><div class="rubric-label">Product Variety</div><div class="rubric-label-cn">产品多样性</div></div>
       <div class="rubric-card"><div class="rubric-score">/5</div><div class="rubric-max">pts</div><div class="rubric-label">Analysis</div><div class="rubric-label-cn">分析深度</div></div>
-      <div class="rubric-card"><div class="rubric-score">/5</div><div class="rubric-max">pts</div><div class="rubric-label">Definition</div><div class="rubric-label-cn">定义完整性</div></div>
+      <div class="rubric-card"><div class="rubric-score">/5</div><div class="rubric-max">pts</div><div class="rubric-label">Definition</div><div class="rubric-label-cn">定义质量</div></div>
       <div class="rubric-card"><div class="rubric-score">/5</div><div class="rubric-max">pts</div><div class="rubric-label">Participation</div><div class="rubric-label-cn">参与度</div></div>
     </div>
     <div class="locked-accordion">
-      <button class="locked-header" onclick="toggleLocked('lock3')">
-        <div><span>🔒 Full Reference Definition · 完整参考定义</span><span class="hcn">供教师课堂总结使用 · Instructor use</span></div>
-        <span class="lock-badge">LOCKED · 已锁定</span>
-      </button>
+      <button class="locked-header" onclick="toggleLocked('lock3')"><div><span>🔒 Full Reference Definition · 完整参考定义</span><span class="hcn">供教师课堂总结 · Instructor use</span></div><span class="lock-badge">LOCKED</span></button>
       <div class="locked-body" id="lock3">
         <div class="pw-gate" id="lock3-gate">
           <div class="pw-gate-title"><span>🔑</span> Enter password · 输入密码</div>
-          <div class="pw-row">
-            <input class="pw-input" type="password" id="pw3" placeholder="••••" maxlength="10"
-              onkeydown="if(event.key==='Enter')checkPw('lock3','pw3','lock3-err','lock3-content')" onfocus="this.select()">
-            <button class="pw-btn" onclick="checkPw('lock3','pw3','lock3-err','lock3-content')">Unlock · 解锁</button>
-          </div>
-          <div class="pw-hint">Password provided by instructor · 请输入教师提供的密码</div>
+          <div class="pw-row"><input class="pw-input" type="password" id="pw3" placeholder="••••" maxlength="10" onkeydown="if(event.key==='Enter')checkPw('lock3','pw3','lock3-err','lock3-content')" onfocus="this.select()"><button class="pw-btn" onclick="checkPw('lock3','pw3','lock3-err','lock3-content')">Unlock · 解锁</button></div>
+          <div class="pw-hint">Password provided by instructor · 教师提供的密码</div>
           <div class="pw-error" id="lock3-err">❌ Incorrect · 密码错误</div>
         </div>
         <div class="locked-content" id="lock3-content">
-          <div style="padding:12px 14px;background:var(--gold-light);border-radius:8px;border-left:4px solid var(--gold);margin-bottom:12px"><strong style="font-size:14px">Finance is the mechanism for allocating economic resources (capital/money) across time and space.</strong></div>
+          <div style="padding:11px 13px;background:var(--gold-light);border-radius:8px;border-left:4px solid var(--gold);margin-bottom:11px"><strong style="font-size:14px">Finance is the mechanism for allocating economic resources (capital/money) across time and space.</strong></div>
           <ul><li><strong>Across time:</strong> present ↔ future (saving, borrowing, investing)</li><li><strong>Across space:</strong> between individuals, firms, industries, or regions</li></ul>
-          <div class="cn-block"><div style="padding:12px 14px;background:var(--gold-light);border-radius:8px;border-left:4px solid var(--gold);margin-bottom:10px"><strong>金融是配置经济资源（资本/钱）的机器，帮助人们实现跨越时间、跨越空间的资源配置。</strong></div>
-          <ul><li><strong>跨越时间：</strong>储蓄、借款、投资</li><li><strong>跨越空间：</strong>不同个人、企业、产业、地区之间</li></ul></div>
+          <div class="cn-block"><div style="padding:11px 13px;background:var(--gold-light);border-radius:8px;border-left:4px solid var(--gold);margin-bottom:9px"><strong>金融是配置经济资源（资本/钱）的机器，帮助人们实现跨越时间、跨越空间的资源配置。</strong></div><ul><li><strong>跨越时间：</strong>储蓄、借款、投资</li><li><strong>跨越空间：</strong>不同个人、企业、产业、地区之间</li></ul></div>
         </div>
       </div>
     </div>
-    <div class="nav-bar">
-      <button class="nav-btn" onclick="goStep(4)">← Back</button>
-      <button class="nav-btn primary" onclick="goStep(0)">↺ Restart · 重新开始</button>
-    </div>
+    <div class="nav-bar"><button class="nav-btn" onclick="goStep(4)">← Back</button><button class="nav-btn primary" onclick="goStep(0);syncToFirebase('currentStep',0)">↺ Restart · 重新开始</button></div>
   </div>
-
   </main>
   <footer>FIN 220 Business Finance · Stamford International University, Hua Hin &nbsp;|&nbsp; <a href="https://hsuanming.github.io">hsuanming.github.io</a></footer>
 </div>
 
-<!-- ══════════════════════════════════════
-     SCREEN 4: INSTRUCTOR DASHBOARD
-══════════════════════════════════════ -->
+<!-- ══════════════════════════
+     SCREEN 3: INSTRUCTOR LOGIN
+══════════════════════════ -->
+<div class="screen" id="screen-instructor-login">
+  <div class="instructor-login">
+    <div class="login-box">
+      <div class="login-title">Instructor Dashboard</div>
+      <div class="login-sub">教师控制台 · Enter password to access</div>
+      <label class="login-label">Password · 密码</label>
+      <input class="login-input" id="instrPw" type="password" placeholder="• • • • • • •" maxlength="20" onkeydown="if(event.key==='Enter')checkInstructorLogin()">
+      <button class="login-btn" onclick="checkInstructorLogin()">Access Dashboard · 进入控制台</button>
+      <div class="login-error" id="instrLoginError"></div>
+      <a class="login-back" onclick="showScreen('screen-orientation')">← Back · 返回</a>
+    </div>
+  </div>
+</div>
+
+<!-- ══════════════════════════
+     SCREEN 4: DASHBOARD
+══════════════════════════ -->
 <div class="screen" id="screen-dashboard">
   <div class="dash-screen">
     <div class="dash-header">
-      <div>
-        <div class="dash-title">Instructor Dashboard · <span>教师控制台</span></div>
-        <div class="dash-subtitle">FIN 220 · What is Finance? · Live Activity</div>
-      </div>
+      <div><div class="dash-title">Instructor Dashboard · <span>教师控制台</span></div><div class="dash-subtitle">FIN 220 · What is Finance? · Live Activity</div></div>
       <div class="dash-actions">
-        <button class="dash-btn" onclick="clearAllData()">🗑 Reset All · 清空数据</button>
-        <button class="dash-btn" onclick="showScreen('screen-join')">← Exit · 退出</button>
+        <div class="conn-wrap"><div class="conn-dot" id="connDot3"></div><span class="conn-label" id="connLabel3">Connecting…</span></div>
+        <button class="dash-btn primary" onclick="showInstructionsDisplay()">📋 Show Instructions · 显示活动说明</button>
+        <button class="dash-btn" onclick="newSession()">🔄 New Session · 新课堂</button>
+        <button class="dash-btn danger" onclick="clearAllData()">🗑 Reset · 清空</button>
+        <button class="dash-btn" onclick="showScreen('screen-orientation')">← Exit · 退出</button>
       </div>
     </div>
+
+    <!-- SESSION BAR -->
+    <div class="session-bar">
+      <span class="session-label">Session · 课堂场次:</span>
+      <select class="session-select" id="sessionSelect" onchange="changeSession()"></select>
+      <span class="session-badge" id="sessionBadge">Loading…</span>
+    </div>
+
+    <!-- BROADCAST BAR -->
+    <div class="broadcast-bar">
+      <span style="font-size:11px;font-weight:600;color:var(--ink3);letter-spacing:.04em;text-transform:uppercase;flex-shrink:0">📢 Broadcast · 广播:</span>
+      <input class="broadcast-input" id="broadcastInput" type="text" placeholder="Send a message to all teams · 向所有小组发送消息" maxlength="120" onkeydown="if(event.key==='Enter')sendBroadcast()">
+      <button class="broadcast-send" onclick="sendBroadcast()">Send · 发送</button>
+      <button class="broadcast-clear" onclick="clearBroadcast()">Clear · 清除</button>
+    </div>
+
     <div class="dash-main">
       <div class="dash-stats">
         <div class="stat-card"><div class="stat-num" id="statTotal">0</div><div class="stat-label">Students Joined · 已加入</div></div>
-        <div class="stat-card"><div class="stat-num" id="statReady">0</div><div class="stat-label">Teams Ready · 小组就绪</div></div>
+        <div class="stat-card"><div class="stat-num" id="statReady">0</div><div class="stat-label">Teams Ready · 就绪</div></div>
         <div class="stat-card"><div class="stat-num" id="statActive">0</div><div class="stat-label">Teams Active · 进行中</div></div>
-        <div class="stat-card"><div class="stat-num" id="statDefs">0</div><div class="stat-label">Definitions Written · 已提交定义</div></div>
+        <div class="stat-card"><div class="stat-num" id="statDefs">0</div><div class="stat-label">Definitions Written · 已写定义</div></div>
       </div>
       <div class="teams-grid" id="teamsGrid"></div>
       <div class="team-detail hidden" id="teamDetail">
         <div class="detail-header">
           <div class="detail-title"><span id="detailTeamEmoji"></span><span id="detailTeamName"></span></div>
-          <div style="display:flex;gap:8px">
+          <div class="detail-btns">
             <button class="display-btn" onclick="enterDisplayMode()">📺 Display · 投影展示</button>
             <button class="detail-close" onclick="closeDetail()">✕ Close</button>
           </div>
@@ -850,52 +876,112 @@ footer a{color:rgba(255,255,255,0.35);text-decoration:none}
   </div>
 </div>
 
-<!-- DISPLAY MODE OVERLAY -->
+<!-- ══ DISPLAY MODE ══ -->
 <div class="display-mode" id="displayMode">
-  <button class="display-close" onclick="exitDisplayMode()">✕ Exit Display Mode · 退出投影模式</button>
-  <div class="display-team-name" id="displayTeamName"></div>
-  <div class="display-members" id="displayMembers"></div>
-  <div class="display-definition">
-    <div class="display-def-label">DEFINITION OF FINANCE · 金融的定义</div>
-    <div class="display-def-text" id="displayDefText"></div>
+  <div class="display-topbar">
+    <div class="display-team-info">
+      <div class="display-team-name" id="displayTeamName"></div>
+      <div class="display-members-line" id="displayMembersLine"></div>
+    </div>
+    <button class="display-close-btn" onclick="exitDisplayMode()">✕ Exit Display · 退出投影</button>
+  </div>
+  <div class="display-content" id="displayContent"></div>
+</div>
+
+<!-- ══ INSTRUCTIONS DISPLAY MODE ══ -->
+<div class="display-mode" id="instructionsDisplay">
+  <div class="display-topbar">
+    <div class="display-team-info">
+      <div class="display-team-name" style="font-size:18px">📋 Activity Instructions · 活动说明</div>
+      <div class="display-members-line">FIN 220 · What is Finance? · 什么是金融？</div>
+    </div>
+    <button class="display-close-btn" onclick="exitInstructionsDisplay()">✕ Exit · 退出</button>
+  </div>
+  <div class="display-content">
+    <div style="max-width:800px;margin:0 auto">
+      <div class="display-section-title">About this activity · 活动说明</div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:20px;margin-bottom:28px">
+        <div style="background:rgba(255,255,255,0.05);border-radius:10px;padding:20px;border:1px solid rgba(255,255,255,0.1)">
+          <div style="font-size:11px;letter-spacing:.1em;text-transform:uppercase;color:var(--gold);margin-bottom:10px">🇬🇧 English</div>
+          <div style="font-size:16px;color:rgba(255,255,255,0.8);line-height:1.75">Your instructor has assigned you to a team. This activity has <strong style="color:#fff">no single correct answer</strong>. By exploring three everyday financial products together, you will <em style="color:var(--gold-border)">discover</em> a definition of finance yourselves.</div>
+        </div>
+        <div style="background:rgba(200,146,10,0.1);border-radius:10px;padding:20px;border:1px solid rgba(200,146,10,0.2)">
+          <div style="font-size:11px;letter-spacing:.1em;text-transform:uppercase;color:var(--gold);margin-bottom:10px">🇨🇳 中文</div>
+          <div style="font-size:16px;color:rgba(255,255,255,0.8);line-height:1.75">老师已为你分配小组。本活动<strong style="color:#fff">没有唯一标准答案</strong>。通过一起探究3种日常金融产品，你们将<em style="color:var(--gold-border)">自己归纳</em>出金融的定义。</div>
+        </div>
+      </div>
+      <div class="display-section-title">Activity Flow · 活动流程</div>
+      <div style="display:flex;flex-direction:column;gap:12px">
+        <div style="display:flex;gap:14px;align-items:flex-start;padding:14px 18px;background:rgba(255,255,255,0.05);border-radius:10px;border:1px solid rgba(255,255,255,0.08)">
+          <div style="width:32px;height:32px;border-radius:50%;background:var(--gold);color:#fff;font-size:14px;font-weight:700;display:flex;align-items:center;justify-content:center;flex-shrink:0">①</div>
+          <div><div style="font-size:17px;color:#fff;font-weight:500;margin-bottom:3px">Pick 3 financial products from daily life</div><div style="font-size:14px;color:rgba(255,255,255,0.45)">从日常生活中选3种差异较大的金融产品</div></div>
+        </div>
+        <div style="display:flex;gap:14px;align-items:flex-start;padding:14px 18px;background:rgba(255,255,255,0.05);border-radius:10px;border:1px solid rgba(255,255,255,0.08)">
+          <div style="width:32px;height:32px;border-radius:50%;background:var(--gold);color:#fff;font-size:14px;font-weight:700;display:flex;align-items:center;justify-content:center;flex-shrink:0">②</div>
+          <div><div style="font-size:17px;color:#fff;font-weight:500;margin-bottom:3px">Analyse each product — who, what moves, what each gains</div><div style="font-size:14px;color:rgba(255,255,255,0.45)">分析每种产品——谁在使用、流动的是什么、各方获得什么</div></div>
+        </div>
+        <div style="display:flex;gap:14px;align-items:flex-start;padding:14px 18px;background:rgba(255,255,255,0.05);border-radius:10px;border:1px solid rgba(255,255,255,0.08)">
+          <div style="width:32px;height:32px;border-radius:50%;background:var(--gold);color:#fff;font-size:14px;font-weight:700;display:flex;align-items:center;justify-content:center;flex-shrink:0">③</div>
+          <div><div style="font-size:17px;color:#fff;font-weight:500;margin-bottom:3px">Find what all three share — the key thinking step</div><div style="font-size:14px;color:rgba(255,255,255,0.45)">找出3种产品的共同之处——最关键的思考步骤</div></div>
+        </div>
+        <div style="display:flex;gap:14px;align-items:flex-start;padding:14px 18px;background:rgba(255,255,255,0.05);border-radius:10px;border:1px solid rgba(255,255,255,0.08)">
+          <div style="width:32px;height:32px;border-radius:50%;background:var(--gold);color:#fff;font-size:14px;font-weight:700;display:flex;align-items:center;justify-content:center;flex-shrink:0">④</div>
+          <div><div style="font-size:17px;color:#fff;font-weight:500;margin-bottom:3px">Write your own definition, then vote for the team's best</div><div style="font-size:14px;color:rgba(255,255,255,0.45)">各自写出定义，投票选出小组最佳定义</div></div>
+        </div>
+      </div>
+      <div style="margin-top:24px;padding:16px 20px;background:rgba(200,146,10,0.1);border:1px solid rgba(200,146,10,0.3);border-radius:10px;font-size:15px;color:rgba(255,255,255,0.7);text-align:center">
+        💡 Don't define "finance" right away — let it emerge from your discussion · 不要急于定义，让答案从讨论中自然浮现
+      </div>
+    </div>
   </div>
 </div>
 
+<!-- Firebase SDK -->
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-database-compat.js"></script>
+
 <script>
-// ══════════════════════════════
-// FIREBASE CONFIG
-// ══════════════════════════════
+// ══ FIREBASE ══
 const firebaseConfig = {
-  apiKey: "AIzaSyCrkjf7OzqPd3DeRCI6USSk6niCHz7JxfE",
-  authDomain: "fin220-live.firebaseapp.com",
-  databaseURL: "https://fin220-live-default-rtdb.asia-southeast1.firebasedatabase.app",
-  projectId: "fin220-live",
-  storageBucket: "fin220-live.firebasestorage.app",
-  messagingSenderId: "1081828216107",
-  appId: "1:1081828216107:web:b215ea24d21d73f351496e"
+  apiKey:"AIzaSyCrkjf7OzqPd3DeRCI6USSk6niCHz7JxfE",
+  authDomain:"fin220-live.firebaseapp.com",
+  databaseURL:"https://fin220-live-default-rtdb.asia-southeast1.firebasedatabase.app",
+  projectId:"fin220-live",
+  storageBucket:"fin220-live.firebasestorage.app",
+  messagingSenderId:"1081828216107",
+  appId:"1:1081828216107:web:b215ea24d21d73f351496e"
 };
 firebase.initializeApp(firebaseConfig);
 const db = firebase.database();
 
-// ══════════════════════════════
-// CONSTANTS
-// ══════════════════════════════
+// ══ CONSTANTS ══
 const STUDENT_PW = "220";
 const INSTRUCTOR_PW = "FIN220";
 const MIN_MEMBERS = 3;
 const MAX_MEMBERS = 5;
 
+// Session dates A/B/C
+function buildSessionOptions() {
+  const now = new Date();
+  const d = now.toISOString().slice(0,10);
+  return [
+    {val:`${d}-A`, label:`${d} · Session A`},
+    {val:`${d}-B`, label:`${d} · Session B`},
+    {val:`${d}-C`, label:`${d} · Session C`},
+  ];
+}
+
 const TEAMS = [
-  {id:"team1",  name:"Team 1",  emoji:"🟡"},
-  {id:"team2",  name:"Team 2",  emoji:"🔵"},
-  {id:"team3",  name:"Team 3",  emoji:"🟢"},
-  {id:"team4",  name:"Team 4",  emoji:"🔴"},
-  {id:"team5",  name:"Team 5",  emoji:"🟣"},
-  {id:"team6",  name:"Team 6",  emoji:"🟠"},
-  {id:"team7",  name:"Team 7",  emoji:"⚪"},
-  {id:"team8",  name:"Team 8",  emoji:"🩵"},
-  {id:"team9",  name:"Team 9",  emoji:"🩶"},
-  {id:"team10", name:"Team 10", emoji:"🖤"},
+  {id:"team1",name:"Team 1",emoji:"🟡"},
+  {id:"team2",name:"Team 2",emoji:"🔵"},
+  {id:"team3",name:"Team 3",emoji:"🟢"},
+  {id:"team4",name:"Team 4",emoji:"🔴"},
+  {id:"team5",name:"Team 5",emoji:"🟣"},
+  {id:"team6",name:"Team 6",emoji:"🟠"},
+  {id:"team7",name:"Team 7",emoji:"⚪"},
+  {id:"team8",name:"Team 8",emoji:"🩵"},
+  {id:"team9",name:"Team 9",emoji:"🩶"},
+  {id:"team10",name:"Team 10",emoji:"🖤"},
 ];
 
 const products = [
@@ -930,41 +1016,105 @@ const analysisQs = [
   {en:"What does each party gain?",cn:"双方各获得什么？",ph:"e.g. Student gets funds; bank earns interest · 例：学生获资金，银行赚利息"},
 ];
 
-// ══════════════════════════════
-// STATE
-// ══════════════════════════════
+// ══ STATE ══
 let myTeamId = null;
 let myName = null;
 let myMemberId = null;
+let currentSession = null;
 let teamRef = null;
 let teamData = {};
 let selected = new Set();
 let checked = new Set();
 let currentStep = 0;
+let maxStepReached = 0;
 let selectedDetailTeam = null;
-let syncDebounceTimers = {};
+let syncDebounce = {};
+let dashListener = null;
+let broadcastListener = null;
 
-// ══════════════════════════════
-// SCREEN MANAGEMENT
-// ══════════════════════════════
+// ══ CONNECTION MONITOR ══
+db.ref('.info/connected').on('value', snap => {
+  const connected = snap.val() === true;
+  ['connDot1','connDot2','connDot3'].forEach(id => {
+    const el = document.getElementById(id);
+    if(el) el.className = 'conn-dot' + (connected?' connected':'');
+  });
+  ['connLabel1','connLabel2','connLabel3'].forEach(id => {
+    const el = document.getElementById(id);
+    if(el){ el.textContent = connected?'Live · 已连接':'Offline · 离线'; el.className = 'conn-label'+(connected?' connected':''); }
+  });
+  const banner = document.getElementById('offlineBanner');
+  if(banner) banner.className = 'offline-banner'+(connected?'':' show');
+});
+
+// ══ SCREEN ══
 function showScreen(id) {
   document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
   document.getElementById(id).classList.add('active');
 }
 
-// ══════════════════════════════
-// JOIN SCREEN SETUP
-// ══════════════════════════════
-function setupJoinScreen() {
+// ══ SESSION ══
+function initSessionSelect() {
+  const sel = document.getElementById('sessionSelect');
+  const opts = buildSessionOptions();
+  sel.innerHTML = '';
+  opts.forEach(o => {
+    const opt = document.createElement('option');
+    opt.value = o.val; opt.textContent = o.label;
+    sel.appendChild(opt);
+  });
+  currentSession = opts[0].val;
+  updateSessionBadge();
+}
+
+function changeSession() {
+  currentSession = document.getElementById('sessionSelect').value;
+  updateSessionBadge();
+  selectedDetailTeam = null;
+  document.getElementById('teamDetail').classList.add('hidden');
+  if(dashListener) { db.ref(`sessions/${currentSession}/teams`).off(); }
+  startDashboardListeners();
+}
+
+function updateSessionBadge() {
+  const el = document.getElementById('sessionBadge');
+  if(el) el.textContent = currentSession || '—';
+}
+
+function newSession() {
+  const sel = document.getElementById('sessionSelect');
+  const cur = sel.value;
+  const letters = ['A','B','C','D','E'];
+  const d = cur.slice(0,10);
+  const curLetter = cur.slice(11);
+  const nextLetter = letters[letters.indexOf(curLetter)+1] || 'F';
+  const newVal = `${d}-${nextLetter}`;
+  const opt = document.createElement('option');
+  opt.value = newVal; opt.textContent = `${d} · Session ${nextLetter}`;
+  sel.appendChild(opt);
+  sel.value = newVal;
+  changeSession();
+}
+
+// ══ ORIENTATION / JOIN ══
+function showJoinOverlay() {
+  // Populate team dropdown
   const sel = document.getElementById('joinTeam');
+  sel.innerHTML = '<option value="">— Choose your team · 选择小组 —</option>';
   TEAMS.forEach(t => {
     const opt = document.createElement('option');
     opt.value = t.id;
     opt.textContent = `${t.emoji} ${t.name}`;
     sel.appendChild(opt);
   });
+  document.getElementById('joinOverlay').classList.add('show');
+  document.getElementById('joinName').focus();
   document.getElementById('joinName').addEventListener('input', validateJoinForm);
   document.getElementById('joinTeam').addEventListener('change', validateJoinForm);
+}
+
+function hideJoinOverlay() {
+  document.getElementById('joinOverlay').classList.remove('show');
 }
 
 function validateJoinForm() {
@@ -975,24 +1125,15 @@ function validateJoinForm() {
 
 function previewTeam() {
   const teamId = document.getElementById('joinTeam').value;
-  if (!teamId) return;
+  if(!teamId || !currentSession) return;
   const preview = document.getElementById('teamPreview');
-  db.ref(`teams/${teamId}/members`).once('value', snap => {
+  db.ref(`sessions/${currentSession}/teams/${teamId}/members`).once('value', snap => {
     const members = snap.val() ? Object.values(snap.val()) : [];
     const count = members.length;
-    const names = members.map(m => m.name).join(', ');
-    if (count >= MAX_MEMBERS) {
-      preview.className = 'team-status-preview full';
-      preview.textContent = `⛔ Full (${count}/${MAX_MEMBERS}) · 已满员 — ${names}`;
-    } else if (count >= MIN_MEMBERS) {
-      preview.className = 'team-status-preview ready';
-      preview.textContent = `✅ Ready to start (${count}/${MAX_MEMBERS}) · 可以开始 — ${names}`;
-    } else {
-      preview.className = 'team-status-preview warn';
-      preview.textContent = count === 0
-        ? `Empty · 空组 (0/${MAX_MEMBERS}) — be the first to join!`
-        : `Waiting for more members (${count}/${MAX_MEMBERS}) · 等待成员 — ${names}`;
-    }
+    const names = members.map(m=>m.name).join(', ') || '—';
+    if(count >= MAX_MEMBERS) { preview.className='team-status-preview full-team'; preview.textContent=`⛔ Full (${count}/${MAX_MEMBERS}) · 已满 — ${names}`; }
+    else if(count >= MIN_MEMBERS) { preview.className='team-status-preview ready'; preview.textContent=`✅ Ready (${count}/${MAX_MEMBERS}) · 就绪 — ${names}`; }
+    else { preview.className='team-status-preview warn'; preview.textContent=count===0?`Empty · 空组 (0/${MAX_MEMBERS}) — be the first!`:`Waiting (${count}/${MAX_MEMBERS}) · 等待中 — ${names}`; }
   });
 }
 
@@ -1000,40 +1141,57 @@ function joinTeam() {
   const name = document.getElementById('joinName').value.trim();
   const teamId = document.getElementById('joinTeam').value;
   const err = document.getElementById('joinError');
-  if (!name || !teamId) { err.textContent = 'Please fill in all fields · 请填写所有内容'; return; }
-
-  db.ref(`teams/${teamId}/members`).once('value', snap => {
+  if(!name || !teamId) { err.textContent='Please fill in all fields · 请填写所有内容'; return; }
+  if(!currentSession) {
+    // Use today-A as default session for students
+    const d = new Date().toISOString().slice(0,10);
+    currentSession = `${d}-A`;
+  }
+  db.ref(`sessions/${currentSession}/teams/${teamId}/members`).once('value', snap => {
     const members = snap.val() ? Object.values(snap.val()) : [];
-    if (members.length >= MAX_MEMBERS) {
-      err.textContent = `This team is full (max ${MAX_MEMBERS}) · 该组已满员`;
-      return;
-    }
-    // Join
+    if(members.length >= MAX_MEMBERS) { err.textContent=`This team is full (max ${MAX_MEMBERS}) · 该组已满`; return; }
     myTeamId = teamId;
     myName = name;
-    const team = TEAMS.find(t => t.id === teamId);
-    myMemberId = db.ref(`teams/${teamId}/members`).push({
-      name: name,
-      joinedAt: Date.now()
-    }).key;
+    const team = TEAMS.find(t=>t.id===teamId);
+    const ref = db.ref(`sessions/${currentSession}/teams/${teamId}/members`).push({name, joinedAt:Date.now()});
+    myMemberId = ref.key;
+    ref.onDisconnect().remove();
+    // Also update lastActive
+    db.ref(`sessions/${currentSession}/teams/${teamId}/lastActive`).set(Date.now());
 
-    // Remove on disconnect
-    db.ref(`teams/${teamId}/members/${myMemberId}`).onDisconnect().remove();
+    hideJoinOverlay();
+    document.getElementById('successTeamName').textContent = `${team.emoji} ${team.name}`;
+    document.getElementById('joinSuccess').classList.add('show');
 
-    setupActivityScreen(team);
-    showScreen('screen-activity');
-    listenToTeam();
+    setTimeout(() => {
+      document.getElementById('joinSuccess').classList.remove('show');
+      setupActivityScreen(team);
+      showScreen('screen-activity');
+      listenToTeam();
+    }, 1800);
   });
 }
 
-// ══════════════════════════════
-// ACTIVITY SCREEN SETUP
-// ══════════════════════════════
+// ══ ACTIVITY SETUP ══
 function setupActivityScreen(team) {
   document.getElementById('topTeamBadge').textContent = `${team.emoji} ${team.name}`;
-  teamRef = db.ref(`teams/${myTeamId}`);
+  teamRef = db.ref(`sessions/${currentSession}/teams/${myTeamId}`);
   renderProducts();
   updateSelStatus();
+  listenBroadcast();
+}
+
+function listenBroadcast() {
+  db.ref(`sessions/${currentSession}/broadcast`).on('value', snap => {
+    const msg = snap.val();
+    const banner = document.getElementById('broadcastBanner');
+    if(msg && msg.text) {
+      banner.textContent = `📢 ${msg.text}`;
+      banner.classList.add('show');
+    } else {
+      banner.classList.remove('show');
+    }
+  });
 }
 
 function listenToTeam() {
@@ -1042,6 +1200,8 @@ function listenToTeam() {
     updateMemberBar();
     checkWaiting();
     syncFromFirebase();
+    // Update lastActive
+    db.ref(`sessions/${currentSession}/teams/${myTeamId}/lastActive`).set(Date.now());
   });
 }
 
@@ -1050,126 +1210,181 @@ function updateMemberBar() {
   const count = members.length;
   const chips = document.getElementById('memberChips');
   const readyMsg = document.getElementById('teamReadyMsg');
-  chips.innerHTML = members.map(m => {
-    const isMe = m.name === myName;
-    return `<span class="member-chip ${isMe?'me':''}"><span class="dot"></span>${m.name}${isMe?' (you · 你)':''}</span>`;
+  if(chips) chips.innerHTML = members.map(m => {
+    const isMe = m.name===myName;
+    return `<span class="member-chip ${isMe?'me':''}"><span class="dot"></span>${m.name}${isMe?' (you)':''}</span>`;
   }).join('');
-  if (count < MIN_MEMBERS) {
-    readyMsg.innerHTML = `<span class="waiting-msg">⏳ Waiting · 等待 ${MIN_MEMBERS - count} more · 还需 ${MIN_MEMBERS - count} 人</span>`;
-  } else {
-    readyMsg.innerHTML = `<span class="ready-msg">✅ Ready · 已就绪 (${count}/${MAX_MEMBERS})</span>`;
-  }
-  // Update waiting overlay slots
+  if(readyMsg) readyMsg.innerHTML = count<MIN_MEMBERS
+    ? `<span class="waiting-msg">⏳ Need ${MIN_MEMBERS-count} more · 还需${MIN_MEMBERS-count}人</span>`
+    : `<span class="ready-msg">✅ Ready (${count}/${MAX_MEMBERS})</span>`;
+  // waiting overlay
   const slots = document.getElementById('waitingMemberSlots');
   const counter = document.getElementById('waitingCounter');
-  if (slots) {
-    slots.innerHTML = Array.from({length: MIN_MEMBERS}, (_,i) => {
-      const filled = i < count;
-      const name = members[i] ? members[i].name : '';
-      return `<span class="waiting-chip ${filled?'filled':''}">${filled ? '✓ '+name : (i+1)+'...'}</span>`;
-    }).join('');
-  }
-  if (counter) counter.textContent = `${count} / ${MIN_MEMBERS} minimum · ${count} / ${MIN_MEMBERS} 最低人数`;
+  if(slots) slots.innerHTML = Array.from({length:MIN_MEMBERS},(_,i)=>{
+    const filled = i<count; const name = members[i]?members[i].name:'';
+    return `<span class="waiting-chip ${filled?'filled':''}">${filled?'✓ '+name:(i+1)+'...'}</span>`;
+  }).join('');
+  if(counter) counter.textContent = `${count} / ${MIN_MEMBERS} minimum`;
 }
 
 function checkWaiting() {
   const members = teamData.members ? Object.values(teamData.members) : [];
-  const overlay = document.getElementById('waitingOverlay');
-  if (members.length < MIN_MEMBERS) {
-    overlay.classList.remove('hidden');
-  } else {
-    overlay.classList.add('hidden');
-  }
+  document.getElementById('waitingOverlay').classList.toggle('hidden', members.length>=MIN_MEMBERS);
 }
 
-// ══════════════════════════════
-// FIREBASE SYNC
-// ══════════════════════════════
+// ══ FIREBASE SYNC ══
 function syncToFirebase(path, value) {
-  if (!teamRef) return;
+  if(!teamRef) return;
   teamRef.child(path).set(value);
 }
 
 function syncFromFirebase() {
-  if (!teamData) return;
+  if(!teamData) return;
   // Products
-  if (teamData.selectedProducts) {
-    selected = new Set(teamData.selectedProducts);
-    renderProducts();
-    updateSelStatus();
+  if(teamData.selectedProducts !== undefined) {
+    const s = new Set(teamData.selectedProducts||[]);
+    if(JSON.stringify([...s].sort()) !== JSON.stringify([...selected].sort())) {
+      selected = s; renderProducts(); updateSelStatus();
+    }
   }
   // Inputs
-  if (teamData.inputs) {
-    Object.keys(teamData.inputs).forEach(key => {
+  if(teamData.inputs) {
+    Object.entries(teamData.inputs).forEach(([key,val]) => {
       const el = document.getElementById(key);
-      if (el && document.activeElement !== el) el.value = teamData.inputs[key] || '';
+      if(el && document.activeElement!==el) {
+        el.value = val||'';
+        const ccId = key.replace('inp_','cc_');
+        const cc = document.getElementById(ccId);
+        if(cc) cc.textContent = (val||'').length+' chars';
+        // Last edit indicator
+        if(teamData.inputEditors && teamData.inputEditors[key]) {
+          const meId = key.replace('inp_','lastEdit_');
+          const le = document.getElementById(meId);
+          if(le && teamData.inputEditors[key]!==myName) le.textContent = `✏️ ${teamData.inputEditors[key]}`;
+          else if(le) le.textContent = '';
+        }
+      }
     });
   }
   // Traits
-  if (teamData.checkedTraits) {
-    checked = new Set(teamData.checkedTraits);
-    renderTraits();
-  }
-  // Definition
-  const defEl = document.getElementById('groupDefinition');
-  if (defEl && teamData.definition !== undefined && document.activeElement !== defEl) {
-    defEl.value = teamData.definition || '';
-    updateWordCount(defEl);
+  if(teamData.checkedTraits !== undefined) {
+    const c = new Set(teamData.checkedTraits||[]);
+    if(JSON.stringify([...c].sort()) !== JSON.stringify([...checked].sort())) {
+      checked = c; renderTraits();
+    }
   }
   // Step
-  if (teamData.currentStep !== undefined && teamData.currentStep !== currentStep) {
+  if(teamData.currentStep !== undefined && teamData.currentStep !== currentStep) {
     goStep(teamData.currentStep, false);
   }
+  // Team definitions & votes
+  if(currentStep === 4) renderTeamDefs();
   updateSelectedSummary3();
-  showSyncIndicator(currentStep);
 }
 
-function showSyncIndicator(step) {
-  const ids = ['syncP1','syncP2','syncP3','syncP4'];
-  ids.forEach((id, i) => {
-    const el = document.getElementById(id);
-    if (!el) return;
-    if (i + 1 === step) {
-      el.classList.add('show');
-      setTimeout(() => el.classList.remove('show'), 2000);
-    }
-  });
+function showSyncFlash(id) {
+  const el = document.getElementById(id);
+  if(!el) return;
+  el.classList.add('show');
+  setTimeout(()=>el.classList.remove('show'), 2000);
 }
 
-function syncDefinition(value) {
-  clearTimeout(syncDebounceTimers['def']);
-  syncDebounceTimers['def'] = setTimeout(() => {
-    syncToFirebase('definition', value);
-    showSyncIndicator(4);
-  }, 600);
+function syncMyDefinition(value) {
+  clearTimeout(syncDebounce['myDef']);
+  syncDebounce['myDef'] = setTimeout(()=>{
+    if(!teamRef||!myName) return;
+    teamRef.child(`definitions/${myName.replace(/[.#$[\]]/g,'_')}`).set({name:myName, text:value, ts:Date.now()});
+    showSyncFlash('syncP4');
+  }, 500);
 }
 
 function syncInput(key, value) {
-  clearTimeout(syncDebounceTimers[key]);
-  syncDebounceTimers[key] = setTimeout(() => {
-    syncToFirebase(`inputs/${key}`, value);
-    showSyncIndicator(2);
-  }, 600);
+  clearTimeout(syncDebounce[key]);
+  syncDebounce[key] = setTimeout(()=>{
+    if(!teamRef) return;
+    teamRef.child(`inputs/${key}`).set(value);
+    teamRef.child(`inputEditors/${key}`).set(myName);
+    showSyncFlash('syncP2');
+  }, 500);
 }
 
-// ══════════════════════════════
-// PRODUCTS
-// ══════════════════════════════
+// ══ VOTING ══
+function voteForDef(studentKey) {
+  if(!teamRef||!myName) return;
+  const myKey = myName.replace(/[.#$[\]]/g,'_');
+  // Remove my previous vote
+  teamRef.child('votes').once('value', snap => {
+    const votes = snap.val()||{};
+    Object.keys(votes).forEach(k => {
+      if(votes[k]===myKey) teamRef.child(`votes/${k}`).remove();
+    });
+    // Add new vote
+    teamRef.child(`votes/${myKey}`).set(studentKey);
+    showSyncFlash('syncP4');
+  });
+}
+
+function renderTeamDefs() {
+  const container = document.getElementById('teamDefsContainer');
+  if(!container) return;
+  const defs = teamData.definitions ? Object.values(teamData.definitions) : [];
+  const votes = teamData.votes || {};
+  const myKey = myName ? myName.replace(/[.#$[\]]/g,'_') : '';
+
+  // Count votes per definition
+  const voteCounts = {};
+  Object.values(votes).forEach(v => { voteCounts[v]=(voteCounts[v]||0)+1; });
+  const maxVotes = Math.max(0, ...Object.values(voteCounts));
+
+  // My current vote
+  const myVote = votes[myKey] || null;
+
+  if(!defs.length) {
+    container.innerHTML = '<div style="font-size:12px;color:var(--ink4);font-style:italic;padding:8px 0">No definitions written yet · 尚未有人填写定义</div>';
+    return;
+  }
+
+  container.innerHTML = defs.map(def => {
+    const defKey = def.name.replace(/[.#$[\]]/g,'_');
+    const isMe = def.name === myName;
+    const vCount = voteCounts[defKey]||0;
+    const isWinner = vCount > 0 && vCount === maxVotes;
+    const iVoted = myVote === defKey;
+    const hasText = def.text && def.text.trim();
+    return `<div class="def-card ${isWinner?'winner':''} ${isMe?'mine':''}">
+      <div class="def-card-header">
+        <div class="def-student-name">
+          ${def.name}
+          ${isMe?'<span class="def-mine-badge">You · 你</span>':''}
+          ${isWinner?'<span class="def-winner-badge">👑 Team Definition · 小组定义</span>':''}
+        </div>
+        <div class="def-vote-area">
+          <span class="vote-count">${vCount} vote${vCount!==1?'s':''}</span>
+          ${!isMe?`<button class="vote-btn ${iVoted?'voted':''}" onclick="voteForDef('${defKey}')" ${!hasText?'disabled':''}>
+            ${iVoted?'✓ Voted · 已投':'👍 Vote · 投票'}
+          </button>`:'<span style="font-size:11px;color:var(--ink4)">Your definition</span>'}
+        </div>
+      </div>
+      <div class="def-text-body ${!hasText?'empty':''}">${hasText?def.text:'(not written yet · 尚未填写)'}</div>
+    </div>`;
+  }).join('');
+}
+
+// ══ PRODUCTS ══
 function renderProducts() {
   const g = document.getElementById('productGrid');
-  if (!g) return;
+  if(!g) return;
   g.innerHTML = '';
-  products.forEach((p, i) => {
+  products.forEach((p,i)=>{
     const d = document.createElement('div');
-    d.className = 'product-card' + (selected.has(i)?' selected':'') + (!selected.has(i)&&selected.size>=3?' disabled':'');
+    d.className = 'product-card'+(selected.has(i)?' selected':'')+(!selected.has(i)&&selected.size>=3?' disabled':'');
     d.innerHTML = `<div class="product-emoji">${p.emoji}</div><div class="product-en">${p.en}</div><div class="product-cn">${p.cn}</div>`;
-    d.onclick = () => {
-      if (selected.has(i)) selected.delete(i);
-      else if (selected.size < 3) selected.add(i);
-      renderProducts();
-      updateSelStatus();
+    d.onclick = ()=>{
+      if(selected.has(i)) selected.delete(i);
+      else if(selected.size<3) selected.add(i);
+      renderProducts(); updateSelStatus();
       syncToFirebase('selectedProducts', Array.from(selected));
-      showSyncIndicator(1);
+      showSyncFlash('syncP1');
     };
     g.appendChild(d);
   });
@@ -1177,322 +1392,320 @@ function renderProducts() {
 
 function updateSelStatus() {
   const el = document.getElementById('selStatus');
-  if (!el) return;
+  if(!el) return;
   const n = selected.size;
-  if (n===0){el.className='sel-status empty';el.textContent='请选择3种产品 · Please select 3 products';}
-  else if (n<3){el.className='sel-status partial';el.textContent=`已选 ${n} 种，还需 ${3-n} 种 · ${n} selected — ${3-n} more`;}
+  if(n===0){el.className='sel-status empty';el.textContent='请选择3种产品 · Please select 3 products';}
+  else if(n<3){el.className='sel-status partial';el.textContent=`已选 ${n} 种，还需 ${3-n} 种 · ${n} selected — ${3-n} more`;}
   else{el.className='sel-status full';el.textContent='✓ 已选3种产品 · 3 products selected';}
 }
 
-// ══════════════════════════════
-// PRODUCT INPUTS
-// ══════════════════════════════
+// ══ PRODUCT INPUTS ══
 function renderProductInputs() {
   const c = document.getElementById('productInputs');
-  if (!c) return;
-  const items = Array.from(selected).map(i => products[i]);
-  if (!items.length) {
-    c.innerHTML='<div class="info-callout"><span class="icon">⚠️</span><div>Please go back and select products first · 请返回选择产品。</div></div>';
-    return;
-  }
-  c.innerHTML = '';
-  items.forEach((p, pi) => {
+  if(!c) return;
+  const items = Array.from(selected).map(i=>products[i]);
+  if(!items.length){ c.innerHTML='<div class="info-callout"><span class="icon">⚠️</span><div>Please go back and select products · 请返回选择产品</div></div>'; return; }
+  c.innerHTML='';
+  items.forEach((p,pi)=>{
     const sec = document.createElement('div');
     sec.className = 'product-input-section';
-    const rows = analysisQs.map((q, qi) => {
+    const rows = analysisQs.map((q,qi)=>{
       const key = `inp_${pi}_${qi}`;
-      const saved = teamData.inputs && teamData.inputs[key] ? teamData.inputs[key] : '';
+      const saved = teamData.inputs&&teamData.inputs[key]?teamData.inputs[key]:'';
+      const editor = teamData.inputEditors&&teamData.inputEditors[key]?teamData.inputEditors[key]:'';
+      const showEditor = editor && editor!==myName;
       return `<div class="input-row">
         <div class="input-label">${q.en}<span class="cn">${q.cn}</span></div>
         <div class="input-wrap">
           <textarea class="input-field" id="${key}" placeholder="${q.ph}"
             oninput="updateCharCount(this,'cc_${pi}_${qi}');syncInput('${key}',this.value)">${saved}</textarea>
-          <div class="char-count" id="cc_${pi}_${qi}">${saved.length} chars</div>
+          <div class="input-meta">
+            <span class="char-count" id="cc_${pi}_${qi}">${saved.length} chars</span>
+            <span class="last-edit" id="lastEdit_${pi}_${qi}">${showEditor?'✏️ '+editor:''}</span>
+          </div>
         </div>
       </div>`;
     }).join('');
-    sec.innerHTML = `<div class="product-input-header"><span class="p-emoji">${p.emoji}</span><div><div class="p-name-en">${p.en}</div><div class="p-name-cn">${p.cn}</div></div></div><div class="product-input-body">${rows}</div>`;
+    sec.innerHTML=`<div class="product-input-header"><span class="p-emoji">${p.emoji}</span><div><div class="p-name-en">${p.en}</div><div class="p-name-cn">${p.cn}</div></div></div><div class="product-input-body">${rows}</div>`;
     c.appendChild(sec);
   });
 }
 
-function updateCharCount(ta, id) {
-  const el = document.getElementById(id);
-  if (el) el.textContent = ta.value.length + ' chars';
-}
+function updateCharCount(ta,id){ const el=document.getElementById(id); if(el) el.textContent=ta.value.length+' chars'; }
 
-// ══════════════════════════════
-// TRAITS
-// ══════════════════════════════
+// ══ TRAITS ══
 function renderTraits() {
   const g = document.getElementById('traitGrid');
-  if (!g) return;
-  g.innerHTML = '';
-  traits.forEach((t, i) => {
+  if(!g) return;
+  g.innerHTML='';
+  traits.forEach((t,i)=>{
     const d = document.createElement('div');
-    d.className = 'trait-card' + (checked.has(i)?' checked':'');
-    d.innerHTML = `<div class="trait-checkbox">${checked.has(i)?'✓':''}</div><div class="trait-text"><div class="en">${t.en}</div><div class="cn">${t.cn}</div></div>`;
-    d.onclick = () => {
-      checked.has(i) ? checked.delete(i) : checked.add(i);
-      renderTraits();
-      syncToFirebase('checkedTraits', Array.from(checked));
-      showSyncIndicator(3);
-    };
+    d.className='trait-card'+(checked.has(i)?' checked':'');
+    d.innerHTML=`<div class="trait-checkbox">${checked.has(i)?'✓':''}</div><div class="trait-text"><div class="en">${t.en}</div><div class="cn">${t.cn}</div></div>`;
+    d.onclick=()=>{ checked.has(i)?checked.delete(i):checked.add(i); renderTraits(); syncToFirebase('checkedTraits',Array.from(checked)); showSyncFlash('syncP3'); };
     g.appendChild(d);
   });
 }
 
 function updateSelectedSummary3() {
   const el = document.getElementById('selectedProductsDisplay3');
-  if (!el) return;
-  const items = Array.from(selected).map(i => products[i]);
-  if (!items.length) { el.innerHTML = ''; return; }
-  el.innerHTML = '<div class="selected-summary">' + items.map(p => `<span class="sel-chip">${p.emoji} ${p.en} · ${p.cn}</span>`).join('') + '</div>';
+  if(!el) return;
+  const items = Array.from(selected).map(i=>products[i]);
+  el.innerHTML = items.length?'<div class="selected-summary">'+items.map(p=>`<span class="sel-chip">${p.emoji} ${p.en} · ${p.cn}</span>`).join('')+'</div>':'';
 }
 
-// ══════════════════════════════
-// STEP NAVIGATION
-// ══════════════════════════════
-function goStep(n, syncFB = true) {
+// ══ STEP NAVIGATION ══
+function tryGoStep(n) {
+  if(n > maxStepReached) return; // locked
+  goStep(n);
+}
+
+function goStep(n, syncFB=true) {
   currentStep = n;
-  document.querySelectorAll('.panel').forEach((p,i) => p.classList.toggle('active', i===n));
-  document.querySelectorAll('.step-btn').forEach((b,i) => {
-    b.classList.toggle('active', i===n);
-    b.classList.toggle('done', i<n);
+  if(n > maxStepReached) maxStepReached = n;
+  document.querySelectorAll('.panel').forEach((p,i)=>p.classList.toggle('active',i===n));
+  document.querySelectorAll('.step-btn').forEach((b,i)=>{
+    b.classList.toggle('active',i===n);
+    b.classList.toggle('done',i<n);
+    b.classList.toggle('locked', i>maxStepReached);
     const sc = document.getElementById('sc'+i);
-    if (sc) sc.textContent = i<n?'✓':(i+1);
+    if(sc) sc.textContent = i<n?'✓':(i+1);
   });
-  if (n===2) renderProductInputs();
-  if (n===3) { renderTraits(); updateSelectedSummary3(); }
-  if (syncFB && teamRef) syncToFirebase('currentStep', n);
-  window.scrollTo({top:0, behavior:'smooth'});
+  if(n===2) renderProductInputs();
+  if(n===3){ renderTraits(); updateSelectedSummary3(); }
+  if(n===4){ renderTeamDefs(); // listen for def/vote updates
+    if(teamRef) teamRef.on('value', snap=>{ teamData=snap.val()||{}; renderTeamDefs(); });
+  }
+  if(syncFB && teamRef) syncToFirebase('currentStep', n);
+  window.scrollTo({top:0,behavior:'smooth'});
 }
 
-// ══════════════════════════════
-// WORD COUNT
-// ══════════════════════════════
+// ══ WORD COUNT ══
 function updateWordCount(ta) {
   const el = document.getElementById('defWordCount');
-  if (!el) return;
-  const words = ta.value.trim() ? ta.value.trim().split(/\s+/).length : 0;
-  el.textContent = `${words} word${words!==1?'s':''} · ${ta.value.length}字`;
-  el.className = 'def-word-count' + (words>0?' has-words':'');
+  if(!el) return;
+  const words = ta.value.trim()?ta.value.trim().split(/\s+/).length:0;
+  el.textContent=`${words} word${words!==1?'s':''} · ${ta.value.length}字`;
+  el.className='def-word-count'+(words>0?' has-words':'');
 }
 
-// ══════════════════════════════
-// ACCORDIONS
-// ══════════════════════════════
+// ══ ACCORDIONS ══
 function toggleAccordion(id) {
-  const body = document.getElementById(id);
-  const arrow = document.getElementById(id+'-arrow');
-  const open = body.classList.toggle('open');
-  if (arrow) arrow.textContent = open?'▾':'▸';
+  const body=document.getElementById(id); const arrow=document.getElementById(id+'-arrow');
+  const open=body.classList.toggle('open');
+  if(arrow) arrow.textContent=open?'▾':'▸';
 }
 
 function toggleLocked(id) {
-  const body = document.getElementById(id);
-  const open = body.classList.toggle('open');
-  if (open) {
-    const gate = document.getElementById(id+'-gate');
-    if (gate && gate.style.display !== 'none') {
-      const inp = gate.querySelector('.pw-input');
-      if (inp) setTimeout(() => inp.focus(), 120);
-    }
-  }
+  const body=document.getElementById(id);
+  const open=body.classList.toggle('open');
+  if(open){ const gate=document.getElementById(id+'-gate'); if(gate&&gate.style.display!=='none'){ const inp=gate.querySelector('.pw-input'); if(inp) setTimeout(()=>inp.focus(),120); } }
 }
 
-function checkPw(lockId, inputId, errId, contentId) {
-  const inp = document.getElementById(inputId);
-  const err = document.getElementById(errId);
-  const content = document.getElementById(contentId);
-  const gate = document.getElementById(lockId+'-gate');
-  if (inp.value.trim() === STUDENT_PW) {
-    gate.style.display = 'none';
-    content.classList.add('revealed');
-    err.style.display = 'none';
-  } else {
-    err.style.display = 'block';
-    inp.value = '';
-    inp.classList.add('shake');
-    setTimeout(() => inp.classList.remove('shake'), 400);
-    inp.focus();
-  }
+function checkPw(lockId,inputId,errId,contentId) {
+  const inp=document.getElementById(inputId); const err=document.getElementById(errId);
+  const content=document.getElementById(contentId); const gate=document.getElementById(lockId+'-gate');
+  if(inp.value.trim()===STUDENT_PW){ gate.style.display='none'; content.classList.add('revealed'); err.style.display='none'; }
+  else{ err.style.display='block'; inp.value=''; inp.classList.add('shake'); setTimeout(()=>inp.classList.remove('shake'),400); inp.focus(); }
 }
 
-// ══════════════════════════════
-// INSTRUCTOR DASHBOARD
-// ══════════════════════════════
-function showInstructorLogin() {
-  showScreen('screen-instructor-login');
-  setTimeout(() => document.getElementById('instrPw').focus(), 200);
-}
+// ══ INSTRUCTOR ══
+function showInstructorLogin() { showScreen('screen-instructor-login'); setTimeout(()=>document.getElementById('instrPw').focus(),200); }
 
 function checkInstructorLogin() {
-  const pw = document.getElementById('instrPw').value.trim();
-  const err = document.getElementById('instrLoginError');
-  if (pw === INSTRUCTOR_PW) {
-    err.textContent = '';
-    document.getElementById('instrPw').value = '';
-    showScreen('screen-dashboard');
-    startDashboardListeners();
-  } else {
-    err.textContent = '❌ Incorrect password · 密码错误';
-    document.getElementById('instrPw').value = '';
-    document.getElementById('instrPw').focus();
-  }
+  const pw=document.getElementById('instrPw').value.trim();
+  const err=document.getElementById('instrLoginError');
+  if(pw===INSTRUCTOR_PW){ err.textContent=''; document.getElementById('instrPw').value=''; showScreen('screen-dashboard'); initSessionSelect(); startDashboardListeners(); }
+  else{ err.textContent='❌ Incorrect password · 密码错误'; document.getElementById('instrPw').value=''; document.getElementById('instrPw').focus(); }
 }
 
-let dashListenerActive = false;
 function startDashboardListeners() {
-  if (dashListenerActive) return;
-  dashListenerActive = true;
-  db.ref('teams').on('value', snap => {
-    const allData = snap.val() || {};
-    renderDashboard(allData);
+  if(!currentSession) return;
+  if(dashListener) db.ref(`sessions/${currentSession}/teams`).off('value', dashListener);
+  dashListener = db.ref(`sessions/${currentSession}/teams`).on('value', snap=>{ renderDashboard(snap.val()||{}); });
+  db.ref(`sessions/${currentSession}/broadcast`).on('value', snap=>{
+    const msg=snap.val();
+    const inp=document.getElementById('broadcastInput');
+    if(inp && msg && msg.text) inp.value=msg.text;
   });
 }
 
-function renderDashboard(allData) {
-  // Stats
-  let totalStudents = 0, readyTeams = 0, activeTeams = 0, defCount = 0;
-  TEAMS.forEach(t => {
-    const td = allData[t.id] || {};
-    const members = td.members ? Object.values(td.members) : [];
-    totalStudents += members.length;
-    if (members.length >= MIN_MEMBERS) readyTeams++;
-    if (td.currentStep && td.currentStep > 0) activeTeams++;
-    if (td.definition && td.definition.trim()) defCount++;
-  });
-  document.getElementById('statTotal').textContent = totalStudents;
-  document.getElementById('statReady').textContent = readyTeams;
-  document.getElementById('statActive').textContent = activeTeams;
-  document.getElementById('statDefs').textContent = defCount;
+// ══ BROADCAST ══
+function sendBroadcast() {
+  const text=document.getElementById('broadcastInput').value.trim();
+  if(!text||!currentSession) return;
+  db.ref(`sessions/${currentSession}/broadcast`).set({text, ts:Date.now()});
+}
 
-  // Team cards
-  const grid = document.getElementById('teamsGrid');
-  grid.innerHTML = '';
-  TEAMS.forEach(t => {
-    const td = allData[t.id] || {};
-    const members = td.members ? Object.values(td.members) : [];
-    const count = members.length;
-    const step = td.currentStep || 0;
-    const stepLabels = ['Orientation','Products','Analysis','Common Thread','Definition','Debrief'];
-    let statusClass = 'status-waiting', statusText = 'Waiting · 等待';
-    if (count >= MAX_MEMBERS) { statusClass='status-full'; statusText=`Full · 满员 (${count}/${MAX_MEMBERS})`; }
-    else if (count >= MIN_MEMBERS && step > 0) { statusClass='status-active'; statusText=`Active · 进行中 (${count})`; }
-    else if (count >= MIN_MEMBERS) { statusClass='status-ready'; statusText=`Ready · 就绪 (${count})`; }
-    else { statusText=`Waiting · 等待 (${count}/${MIN_MEMBERS})`; }
-    const isSelected = selectedDetailTeam === t.id;
-    const card = document.createElement('div');
-    card.className = `team-card${isSelected?' selected':''}`;
-    card.onclick = () => selectTeamDetail(t.id, allData[t.id] || {}, t);
-    card.innerHTML = `
-      <div class="team-card-header">
-        <span class="team-emoji">${t.emoji}</span>
-        <div class="team-info">
-          <div class="team-name">${t.name}</div>
-          <div class="team-step">Step ${step+1}: ${stepLabels[step]||'—'}</div>
-        </div>
-        <span class="team-status-badge ${statusClass}">${statusText}</span>
-      </div>
-      <div class="team-card-body">
-        <div class="member-list">${count>0?members.map(m=>`<span class="member-pill">${m.name}</span>`).join(''):'<span class="no-members">No members yet · 暂无成员</span>'}</div>
-        <div class="team-progress-bar"><div class="team-progress-fill" style="width:${Math.round((step/5)*100)}%"></div></div>
-        <div class="team-step-label">${Math.round((step/5)*100)}% complete · 已完成</div>
-      </div>`;
+function clearBroadcast() {
+  if(!currentSession) return;
+  db.ref(`sessions/${currentSession}/broadcast`).remove();
+  document.getElementById('broadcastInput').value='';
+}
+
+// ══ DASHBOARD RENDER ══
+function renderDashboard(allData) {
+  let total=0,ready=0,active=0,defs=0;
+  TEAMS.forEach(t=>{ const td=allData[t.id]||{};
+    const members=td.members?Object.values(td.members):[];
+    total+=members.length;
+    if(members.length>=MIN_MEMBERS) ready++;
+    if(td.currentStep&&td.currentStep>0) active++;
+    const teamDefs=td.definitions?Object.values(td.definitions):[];
+    defs+=teamDefs.filter(d=>d.text&&d.text.trim()).length;
+  });
+  document.getElementById('statTotal').textContent=total;
+  document.getElementById('statReady').textContent=ready;
+  document.getElementById('statActive').textContent=active;
+  document.getElementById('statDefs').textContent=defs;
+
+  const grid=document.getElementById('teamsGrid'); grid.innerHTML='';
+  const stepLabels=['Orientation','Products','Analysis','Common Thread','Definition','Debrief'];
+  TEAMS.forEach(t=>{
+    const td=allData[t.id]||{};
+    const members=td.members?Object.values(td.members):[];
+    const count=members.length; const step=td.currentStep||0;
+    const lastActive=td.lastActive?timeAgo(td.lastActive):'—';
+    let statusClass='status-waiting',statusText=`Waiting (${count}/${MIN_MEMBERS})`;
+    if(count>=MAX_MEMBERS){statusClass='status-full';statusText=`Full (${count}/${MAX_MEMBERS})`;}
+    else if(count>=MIN_MEMBERS&&step>0){statusClass='status-active';statusText=`Active (${count})`;}
+    else if(count>=MIN_MEMBERS){statusClass='status-ready';statusText=`Ready (${count})`;}
+    const isSelected=selectedDetailTeam===t.id;
+    const card=document.createElement('div');
+    card.className=`team-card${isSelected?' selected':''}`;
+    card.onclick=()=>selectTeamDetail(t.id,allData[t.id]||{},t);
+    card.innerHTML=`<div class="team-card-header"><span class="team-emoji">${t.emoji}</span><div class="team-info"><div class="team-name">${t.name}</div><div class="team-step">Step ${step+1}: ${stepLabels[step]||'—'}</div><div class="team-last-active">Last active: ${lastActive}</div></div><span class="team-status-badge ${statusClass}">${statusText}</span></div><div class="team-card-body"><div class="member-list">${count?members.map(m=>`<span class="member-pill">${m.name}</span>`).join(''):'<span class="no-members">No members</span>'}</div><div class="team-progress-bar"><div class="team-progress-fill" style="width:${Math.round((step/5)*100)}%"></div></div><div class="team-step-label">${Math.round((step/5)*100)}% complete</div></div>`;
     grid.appendChild(card);
   });
-
-  // Update detail panel if open
-  if (selectedDetailTeam) {
-    const team = TEAMS.find(t => t.id === selectedDetailTeam);
-    if (team) selectTeamDetail(selectedDetailTeam, allData[selectedDetailTeam]||{}, team);
-  }
+  if(selectedDetailTeam){ const team=TEAMS.find(t=>t.id===selectedDetailTeam); if(team) selectTeamDetail(selectedDetailTeam,allData[selectedDetailTeam]||{},team); }
 }
 
-function selectTeamDetail(teamId, td, team) {
-  selectedDetailTeam = teamId;
-  document.querySelectorAll('.team-card').forEach((c,i) => c.classList.toggle('selected', TEAMS[i].id===teamId));
-  const detail = document.getElementById('teamDetail');
-  detail.classList.remove('hidden');
-  document.getElementById('detailTeamEmoji').textContent = team.emoji + ' ';
-  document.getElementById('detailTeamName').textContent = team.name;
-  const members = td.members ? Object.values(td.members) : [];
-  const selProds = td.selectedProducts ? Array.from(td.selectedProducts).map(i=>products[i]).filter(Boolean) : [];
-  const checkedTraitsArr = td.checkedTraits ? Array.from(td.checkedTraits).map(i=>traits[i]).filter(Boolean) : [];
-  const definition = td.definition || '';
-  const inputs = td.inputs || {};
-  let html = '';
+function timeAgo(ts) {
+  const diff=Math.floor((Date.now()-ts)/1000);
+  if(diff<60) return diff+'s ago';
+  if(diff<3600) return Math.floor(diff/60)+'m ago';
+  return Math.floor(diff/3600)+'h ago';
+}
+
+function selectTeamDetail(teamId,td,team) {
+  selectedDetailTeam=teamId;
+  document.querySelectorAll('.team-card').forEach((c,i)=>c.classList.toggle('selected',TEAMS[i].id===teamId));
+  const detail=document.getElementById('teamDetail'); detail.classList.remove('hidden');
+  document.getElementById('detailTeamEmoji').textContent=team.emoji+' ';
+  document.getElementById('detailTeamName').textContent=team.name;
+
+  const members=td.members?Object.values(td.members):[];
+  const selProds=td.selectedProducts?Array.from(td.selectedProducts).map(i=>products[i]).filter(Boolean):[];
+  const checkedTraitsArr=td.checkedTraits?Array.from(td.checkedTraits).map(i=>traits[i]).filter(Boolean):[];
+  const inputs=td.inputs||{};
+  const defs=td.definitions?Object.values(td.definitions):[];
+  const votes=td.votes||{};
+  const voteCounts={};
+  Object.values(votes).forEach(v=>{voteCounts[v]=(voteCounts[v]||0)+1;});
+  const maxVotes=Math.max(0,...Object.values(voteCounts));
+
+  let html='';
   // Members
-  html += `<div class="detail-section"><div class="detail-section-title">Team Members · 小组成员 (${members.length}/${MAX_MEMBERS})</div>
-    <div style="display:flex;gap:6px;flex-wrap:wrap">${members.length?members.map(m=>`<span class="member-pill" style="font-size:13px;padding:4px 12px">${m.name}</span>`).join(''):'<span style="color:var(--ink4);font-style:italic;font-size:13px">No members yet</span>'}</div></div>`;
-  // Products
-  html += `<div class="detail-section"><div class="detail-section-title">Selected Products · 选择的产品</div>`;
-  if (selProds.length) {
-    selProds.forEach((p, pi) => {
-      html += `<div style="margin-bottom:14px"><div class="product-tag">${p.emoji} ${p.en} · ${p.cn}</div>`;
-      analysisQs.forEach((q, qi) => {
-        const val = inputs[`inp_${pi}_${qi}`] || '';
-        html += `<div class="answer-block"><div class="answer-question">${q.en} · ${q.cn}</div><div class="answer-text ${!val?'empty':''}">${val||'(no answer yet · 暂无答案)'}</div></div>`;
-      });
-      html += '</div>';
-    });
-  } else { html += '<div style="color:var(--ink4);font-style:italic;font-size:13px">No products selected yet · 尚未选择产品</div>'; }
-  html += '</div>';
+  html+=`<div class="detail-section"><div class="detail-section-title">Members · 成员 (${members.length}/${MAX_MEMBERS})</div><div style="display:flex;gap:5px;flex-wrap:wrap">${members.length?members.map(m=>`<span class="member-pill" style="font-size:12px;padding:3px 10px">${m.name}</span>`).join(''):'<span style="color:var(--ink4);font-style:italic;font-size:12px">No members yet</span>'}</div></div>`;
+  // Products & Analysis
+  html+=`<div class="detail-section"><div class="detail-section-title">Products & Analysis · 产品与分析</div>`;
+  if(selProds.length){ selProds.forEach((p,pi)=>{
+    html+=`<div style="margin-bottom:14px"><div class="product-tag">${p.emoji} ${p.en} · ${p.cn}</div>`;
+    analysisQs.forEach((q,qi)=>{ const val=inputs[`inp_${pi}_${qi}`]||''; const editor=td.inputEditors&&td.inputEditors[`inp_${pi}_${qi}`]?td.inputEditors[`inp_${pi}_${qi}`]:'';
+      html+=`<div class="answer-block"><div class="answer-question">${q.en} · ${q.cn}${editor?` <span style="color:var(--teal);font-size:10px">— ${editor}</span>`:''}</div><div class="answer-text ${!val?'empty':''}">${val||'(no answer yet · 暂无答案)'}</div></div>`;
+    }); html+='</div>';
+  });} else html+='<div style="color:var(--ink4);font-style:italic;font-size:12px">No products selected</div>';
+  html+='</div>';
   // Traits
-  html += `<div class="detail-section"><div class="detail-section-title">Checked Traits · 勾选的特征</div>`;
-  if (checkedTraitsArr.length) {
-    html += `<div class="trait-tags">${checkedTraitsArr.map(t=>`<span class="trait-tag">✓ ${t.en} · ${t.cn}</span>`).join('')}</div>`;
-  } else { html += '<div style="color:var(--ink4);font-style:italic;font-size:13px">No traits checked yet · 尚未勾选特征</div>'; }
-  html += '</div>';
-  // Definition
-  html += `<div class="detail-section"><div class="detail-section-title">Group Definition · 小组定义</div>
-    <div class="definition-highlight ${!definition?'empty':''}">${definition||'(not written yet · 尚未填写)'}</div></div>`;
-  document.getElementById('detailBody').innerHTML = html;
-  detail.scrollIntoView({behavior:'smooth', block:'nearest'});
+  html+=`<div class="detail-section"><div class="detail-section-title">Checked Traits · 勾选特征</div>`;
+  if(checkedTraitsArr.length) html+=`<div class="trait-tags">${checkedTraitsArr.map(t=>`<span class="trait-tag">✓ ${t.en} · ${t.cn}</span>`).join('')}</div>`;
+  else html+='<div style="color:var(--ink4);font-style:italic;font-size:12px">None checked yet</div>';
+  html+='</div>';
+  // Definitions & votes
+  html+=`<div class="detail-section"><div class="detail-section-title">Definitions & Votes · 定义与投票</div>`;
+  if(defs.length){ defs.forEach(def=>{
+    const defKey=def.name.replace(/[.#$[\]]/g,'_');
+    const vCount=voteCounts[defKey]||0;
+    const isWinner=vCount>0&&vCount===maxVotes;
+    html+=`<div class="detail-def-card ${isWinner?'winner':''}"><div class="detail-def-student">${def.name} ${isWinner?'<span class="detail-winner-tag">👑 Team Definition</span>':''} <span class="detail-vote-count">${vCount} vote${vCount!==1?'s':''}</span></div><div class="detail-def-text ${!def.text?'empty':''}">${def.text||'(not written yet)'}</div></div>`;
+  });} else html+='<div style="color:var(--ink4);font-style:italic;font-size:12px">No definitions written yet</div>';
+  html+='</div>';
+
+  document.getElementById('detailBody').innerHTML=html;
+  detail.scrollIntoView({behavior:'smooth',block:'nearest'});
 }
 
-function closeDetail() {
-  selectedDetailTeam = null;
-  document.getElementById('teamDetail').classList.add('hidden');
-  document.querySelectorAll('.team-card').forEach(c => c.classList.remove('selected'));
-}
+function closeDetail() { selectedDetailTeam=null; document.getElementById('teamDetail').classList.add('hidden'); document.querySelectorAll('.team-card').forEach(c=>c.classList.remove('selected')); }
 
-// ══════════════════════════════
-// DISPLAY MODE
-// ══════════════════════════════
+// ══ DISPLAY MODE ══
 function enterDisplayMode() {
-  if (!selectedDetailTeam) return;
-  const team = TEAMS.find(t => t.id === selectedDetailTeam);
-  db.ref(`teams/${selectedDetailTeam}`).once('value', snap => {
-    const td = snap.val() || {};
-    const members = td.members ? Object.values(td.members).map(m=>m.name).join(', ') : 'No members';
-    const definition = td.definition || '';
-    document.getElementById('displayTeamName').textContent = `${team.emoji} ${team.name}`;
-    document.getElementById('displayMembers').textContent = members;
-    const defEl = document.getElementById('displayDefText');
-    defEl.textContent = definition || '(Definition not written yet · 尚未填写定义)';
-    defEl.className = 'display-def-text' + (!definition?' empty':'');
+  if(!selectedDetailTeam) return;
+  const team=TEAMS.find(t=>t.id===selectedDetailTeam);
+  db.ref(`sessions/${currentSession}/teams/${selectedDetailTeam}`).once('value', snap=>{
+    const td=snap.val()||{};
+    const members=td.members?Object.values(td.members).map(m=>m.name).join(', '):'No members';
+    const selProds=td.selectedProducts?Array.from(td.selectedProducts).map(i=>products[i]).filter(Boolean):[];
+    const inputs=td.inputs||{};
+    const checkedTraitsArr=td.checkedTraits?Array.from(td.checkedTraits).map(i=>traits[i]).filter(Boolean):[];
+    const defs=td.definitions?Object.values(td.definitions):[];
+    const votes=td.votes||{};
+    const voteCounts={};
+    Object.values(votes).forEach(v=>{voteCounts[v]=(voteCounts[v]||0)+1;});
+    const maxVotes=Math.max(0,...Object.values(voteCounts));
+
+    document.getElementById('displayTeamName').innerHTML=`${team.emoji} ${team.name}`;
+    document.getElementById('displayMembersLine').textContent=`Members: ${members}`;
+
+    let html='';
+    // Products & Analysis
+    if(selProds.length){
+      html+=`<div class="display-section"><div class="display-section-title">Selected Products & Analysis · 选择的产品与分析</div>`;
+      selProds.forEach((p,pi)=>{
+        html+=`<div class="display-product-block"><div class="display-product-name"><span style="font-size:26px">${p.emoji}</span> ${p.en} · ${p.cn}</div>`;
+        analysisQs.forEach((q,qi)=>{ const val=inputs[`inp_${pi}_${qi}`]||''; const editor=td.inputEditors&&td.inputEditors[`inp_${pi}_${qi}`]?` <span style="font-size:13px;color:rgba(255,255,255,0.35)">— ${td.inputEditors[`inp_${pi}_${qi}`]}</span>`:'';
+          html+=`<div class="display-qa"><div class="display-q">${q.en} · ${q.cn}${editor}</div><div class="display-a ${!val?'empty':''}">${val||'(no answer yet · 暂无答案)'}</div></div>`;
+        });
+        html+='</div>';
+      });
+      html+='</div>';
+    }
+    // Traits
+    if(checkedTraitsArr.length){
+      html+=`<div class="display-section"><div class="display-section-title">Common Traits Found · 发现的共同特征</div><div class="display-traits">${checkedTraitsArr.map(t=>`<span class="display-trait">✓ ${t.en} · ${t.cn}</span>`).join('')}</div></div>`;
+    }
+    // Definitions & votes
+    html+=`<div class="display-section"><div class="display-section-title">Team Definitions & Votes · 小组定义与投票结果</div>`;
+    if(defs.length){ defs.forEach(def=>{
+      const defKey=def.name.replace(/[.#$[\]]/g,'_');
+      const vCount=voteCounts[defKey]||0;
+      const isWinner=vCount>0&&vCount===maxVotes;
+      html+=`<div class="display-def-card ${isWinner?'winner':''}"><div class="display-def-student-name">${isWinner?'<span class="display-winner-crown">👑</span>':''} ${def.name} ${vCount>0?`<span class="display-vote-badge">${vCount} vote${vCount!==1?'s':''}</span>`:''}</div><div class="display-def-text ${!def.text?'empty':''}">${def.text||'(not written yet)'}</div></div>`;
+    });} else html+='<div style="color:rgba(255,255,255,0.3);font-style:italic;font-size:16px">No definitions written yet · 尚未填写定义</div>';
+    html+='</div>';
+
+    document.getElementById('displayContent').innerHTML=html;
     document.getElementById('displayMode').classList.add('active');
   });
 }
 
-function exitDisplayMode() {
-  document.getElementById('displayMode').classList.remove('active');
-}
+function exitDisplayMode() { document.getElementById('displayMode').classList.remove('active'); }
+function showInstructionsDisplay() { document.getElementById('instructionsDisplay').classList.add('active'); }
+function exitInstructionsDisplay() { document.getElementById('instructionsDisplay').classList.remove('active'); }
 
-// ══════════════════════════════
-// CLEAR ALL DATA (instructor)
-// ══════════════════════════════
+// ══ RESET ══
 function clearAllData() {
-  if (!confirm('Reset all team data? This cannot be undone.\n清空所有小组数据？此操作不可撤销。')) return;
-  db.ref('teams').remove();
+  if(!confirm(`Reset all data for session "${currentSession}"?\n清空课堂"${currentSession}"的所有数据？`)) return;
+  db.ref(`sessions/${currentSession}/teams`).remove();
+  db.ref(`sessions/${currentSession}/broadcast`).remove();
+  closeDetail();
 }
 
-// ══════════════════════════════
-// INIT
-// ══════════════════════════════
-setupJoinScreen();
+// ══ INIT ══
+// Set default session for students joining
+const defaultDate = new Date().toISOString().slice(0,10);
+currentSession = `${defaultDate}-A`;
+
+// Session select init is called when entering dashboard
 </script>
 </body>
 </html>
