@@ -216,6 +216,37 @@ body {
   background: var(--paper3);
 }
 
+/* ── SUBJECT GROUPS ── */
+.subject-group { margin-bottom: 56px; }
+.subject-header {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  margin-bottom: 20px;
+  padding-bottom: 16px;
+  border-bottom: 1.5px solid var(--paper3);
+}
+.subject-code-badge {
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: .06em;
+  padding: 5px 14px;
+  border-radius: 6px;
+  border: 1px solid;
+  white-space: nowrap;
+  flex-shrink: 0;
+}
+.subject-info { flex: 1; }
+.subject-name {
+  font-family: 'Cormorant Garamond', 'Noto Serif SC', serif;
+  font-size: 20px;
+  font-weight: 600;
+  color: var(--ink);
+  line-height: 1.2;
+}
+.subject-name-cn { font-size: 12px; color: var(--ink4); margin-top: 2px; }
+.badge-blue { background: var(--blue-light); color: var(--blue); }
+
 /* ── APP GRID ── */
 .app-grid {
   display: grid;
@@ -426,7 +457,7 @@ footer a:hover { color: rgba(255,255,255,0.8); }
   <nav class="hero-nav">
     <div class="nav-logo">Dr. <span>Caspar</span> Yang</div>
     <ul class="nav-links">
-      <li><a href="#apps">Teaching Apps</a></li>
+      <li><a href="#apps">Learn by Doing</a></li>
       <li><a href="#about">About</a></li>
       <li><a href="https://github.com/hsuanming" target="_blank">GitHub</a></li>
     </ul>
@@ -439,7 +470,7 @@ footer a:hover { color: rgba(255,255,255,0.8); }
       <div class="hero-name-cn">杨云麟博士 · Caspar</div>
       <div class="hero-title">
         <strong>Executive Director & Lecturer</strong> — Stamford International University, Hua Hin<br>
-        PhD in Finance · Business Finance · Statistics · Economics · ASEAN Studies
+        PhD in Finance · Business Finance · Statistics · Economics
       </div>
       <div class="hero-pills">
         <span class="hero-pill">Business Finance</span>
@@ -460,177 +491,229 @@ footer a:hover { color: rgba(255,255,255,0.8); }
 <!-- MAIN -->
 <main class="main">
 
-  <!-- APPS SECTION -->
+  <!-- LEARN BY DOING SECTION -->
   <section id="apps">
     <div class="section-header">
-      <div class="section-title">Teaching Apps</div>
-      <div class="section-title-cn">互动教学应用</div>
+      <div class="section-title">Learn by Doing</div>
+      <div class="section-title-cn">做中学</div>
       <div class="section-line"></div>
     </div>
 
-    <div class="app-grid">
-
-      <!-- FIN 220 Activity -->
-      <a href="./fin220-activity/index.html" class="app-card">
-        <div class="card-band band-gold"></div>
-        <div class="card-body">
-          <div class="card-top">
-            <div class="card-icon">💰</div>
-            <div class="card-badges">
-              <span class="badge badge-gold">FIN 220</span>
-              <span class="badge badge-teal">Interactive</span>
-            </div>
-          </div>
-          <div>
-            <div class="card-title">What is Finance?</div>
-            <div class="card-title-cn">什么是金融？— 小组探究活动</div>
-          </div>
-          <div class="card-desc">
-            A 6-step bilingual inductive inquiry activity. Students discover the definition of finance by analysing 3 everyday financial products and finding their common thread.
-            <span class="cn">6步双语归纳探究活动，通过分析3种日常金融产品，引导学生自主发现金融的本质定义。</span>
-          </div>
+    <!-- ── FIN 220 GROUP ── -->
+    <div class="subject-group">
+      <div class="subject-header">
+        <div class="subject-code-badge" style="background:#fef3c7;color:#b45309;border-color:#fde68a">FIN 220</div>
+        <div class="subject-info">
+          <div class="subject-name">Business Finance</div>
+          <div class="subject-name-cn">公司金融</div>
         </div>
-        <div class="card-footer">
-          <div class="card-meta">
-            <span>⏱ 25–30 min</span>
-            <span>👥 Groups of 3</span>
-            <span>🇬🇧🇨🇳 Bilingual</span>
-          </div>
-          <span class="card-arrow">→</span>
-        </div>
-      </a>
-
-      <!-- Coming Soon 2 -->
-      <div class="app-card coming-soon">
-        <div class="card-band band-teal"></div>
-        <div class="card-body">
-          <div class="card-top">
-            <div class="card-icon">📊</div>
-            <div class="card-badges">
-              <span class="badge badge-gray">Coming Soon</span>
-            </div>
-          </div>
-          <div>
-            <div class="card-title">Time Value of Money</div>
-            <div class="card-title-cn">货币时间价值 — 互动计算器</div>
-          </div>
-          <div class="card-desc">
-            Interactive PV / FV calculator with visual timeline. Students explore how money grows over time with different rates and periods.
-            <span class="cn">互动现值/终值计算器，配合视觉时间轴，帮助学生理解货币时间价值。</span>
-          </div>
-        </div>
-        <div class="card-footer">
-          <div class="card-meta"><span>⏱ In-class tool</span></div>
-          <span class="card-arrow">→</span>
-        </div>
-        <span class="coming-badge">Coming Soon</span>
+        <div class="subject-count" id="fin-count"></div>
       </div>
+      <div class="app-grid">
 
-      <!-- Coming Soon 3 -->
-      <div class="app-card coming-soon">
-        <div class="card-band band-blue"></div>
-        <div class="card-body">
-          <div class="card-top">
-            <div class="card-icon">🎯</div>
-            <div class="card-badges">
-              <span class="badge badge-gray">Coming Soon</span>
+        <!-- FIN220 #1 — Live -->
+        <a href="./fin220-activity/index.html" class="app-card">
+          <div class="card-band band-gold"></div>
+          <div class="card-body">
+            <div class="card-top">
+              <div class="card-icon">💰</div>
+              <div class="card-badges">
+                <span class="badge badge-gold">#1</span>
+                <span class="badge badge-teal">Live</span>
+              </div>
+            </div>
+            <div>
+              <div class="card-title">What is Finance?</div>
+              <div class="card-title-cn">什么是金融？— 小组探究活动</div>
+            </div>
+            <div class="card-desc">
+              A 6-step bilingual inductive inquiry activity. Students discover the definition of finance by analysing 3 everyday financial products and finding their common thread.
+              <span class="cn">6步双语归纳探究活动，通过分析3种日常金融产品，引导学生自主发现金融的本质定义。</span>
             </div>
           </div>
-          <div>
-            <div class="card-title">Risk & Return Quiz</div>
-            <div class="card-title-cn">风险与回报 — 概念测验</div>
+          <div class="card-footer">
+            <div class="card-meta">
+              <span>⏱ 25–30 min</span>
+              <span>👥 Groups of 3</span>
+              <span>🇬🇧🇨🇳 Bilingual</span>
+            </div>
+            <span class="card-arrow">→</span>
           </div>
-          <div class="card-desc">
-            Auto-graded concept quiz on risk, return, and diversification. Instant feedback with bilingual explanations.
-            <span class="cn">风险、回报与多元化的自动评分概念测验，附双语即时反馈。</span>
-          </div>
-        </div>
-        <div class="card-footer">
-          <div class="card-meta"><span>⏱ 15 min</span></div>
-          <span class="card-arrow">→</span>
-        </div>
-        <span class="coming-badge">Coming Soon</span>
-      </div>
+        </a>
 
-      <!-- Coming Soon 4 -->
-      <div class="app-card coming-soon">
-        <div class="card-band band-purple"></div>
-        <div class="card-body">
-          <div class="card-top">
-            <div class="card-icon">🏢</div>
-            <div class="card-badges">
-              <span class="badge badge-gray">Coming Soon</span>
+        <!-- FIN220 #2 — Coming Soon -->
+        <div class="app-card coming-soon">
+          <div class="card-band band-gold"></div>
+          <div class="card-body">
+            <div class="card-top">
+              <div class="card-icon">📊</div>
+              <div class="card-badges">
+                <span class="badge badge-gold">#2</span>
+                <span class="badge badge-gray">Coming Soon</span>
+              </div>
+            </div>
+            <div>
+              <div class="card-title">Time Value of Money</div>
+              <div class="card-title-cn">货币时间价值 — 互动计算器</div>
+            </div>
+            <div class="card-desc">
+              Interactive PV / FV calculator with visual timeline. Students explore how money grows over time with different rates and periods.
+              <span class="cn">互动现值/终值计算器，配合视觉时间轴，帮助学生理解货币时间价值。</span>
             </div>
           </div>
-          <div>
-            <div class="card-title">Business Strategy Simulation</div>
-            <div class="card-title-cn">商业策略模拟游戏</div>
+          <div class="card-footer">
+            <div class="card-meta"><span>⏱ In-class tool</span></div>
           </div>
-          <div class="card-desc">
-            Team-based business decision simulation. Groups compete by making financial and strategic decisions across multiple rounds.
-            <span class="cn">团队商业决策模拟，各组通过多轮金融与战略决策相互竞争。</span>
-          </div>
+          <span class="coming-badge">Coming Soon</span>
         </div>
-        <div class="card-footer">
-          <div class="card-meta"><span>⏱ Full class</span></div>
-          <span class="card-arrow">→</span>
-        </div>
-        <span class="coming-badge">Coming Soon</span>
-      </div>
 
-      <!-- Coming Soon 5 -->
-      <div class="app-card coming-soon">
-        <div class="card-band band-red"></div>
-        <div class="card-body">
-          <div class="card-top">
-            <div class="card-icon">📉</div>
-            <div class="card-badges">
-              <span class="badge badge-gray">Coming Soon</span>
+        <!-- FIN220 #3 — Coming Soon -->
+        <div class="app-card coming-soon">
+          <div class="card-band band-gold"></div>
+          <div class="card-body">
+            <div class="card-top">
+              <div class="card-icon">🎯</div>
+              <div class="card-badges">
+                <span class="badge badge-gold">#3</span>
+                <span class="badge badge-gray">Coming Soon</span>
+              </div>
+            </div>
+            <div>
+              <div class="card-title">Risk &amp; Return Quiz</div>
+              <div class="card-title-cn">风险与回报 — 概念测验</div>
+            </div>
+            <div class="card-desc">
+              Auto-graded concept quiz on risk, return, and diversification. Instant feedback with bilingual explanations.
+              <span class="cn">风险、回报与多元化的自动评分概念测验，附双语即时反馈。</span>
             </div>
           </div>
-          <div>
-            <div class="card-title">Statistics Quiz</div>
-            <div class="card-title-cn">商业统计测验</div>
+          <div class="card-footer">
+            <div class="card-meta"><span>⏱ 15 min</span></div>
           </div>
-          <div class="card-desc">
-            Concept checks and calculation problems for Business Statistics. Covers descriptive stats, probability, and hypothesis testing.
-            <span class="cn">商业统计概念与计算题，涵盖描述统计、概率与假设检验。</span>
-          </div>
+          <span class="coming-badge">Coming Soon</span>
         </div>
-        <div class="card-footer">
-          <div class="card-meta"><span>⏱ 20 min</span></div>
-          <span class="card-arrow">→</span>
-        </div>
-        <span class="coming-badge">Coming Soon</span>
-      </div>
 
-      <!-- Coming Soon 6 -->
-      <div class="app-card coming-soon">
-        <div class="card-band band-green"></div>
-        <div class="card-body">
-          <div class="card-top">
-            <div class="card-icon">🌏</div>
-            <div class="card-badges">
-              <span class="badge badge-gray">Coming Soon</span>
+        <!-- FIN220 #4 — Coming Soon -->
+        <div class="app-card coming-soon">
+          <div class="card-band band-gold"></div>
+          <div class="card-body">
+            <div class="card-top">
+              <div class="card-icon">🏢</div>
+              <div class="card-badges">
+                <span class="badge badge-gold">#4</span>
+                <span class="badge badge-gray">Coming Soon</span>
+              </div>
+            </div>
+            <div>
+              <div class="card-title">Business Strategy Simulation</div>
+              <div class="card-title-cn">商业策略模拟游戏</div>
+            </div>
+            <div class="card-desc">
+              Team-based business decision simulation. Groups compete by making financial and strategic decisions across multiple rounds.
+              <span class="cn">团队商业决策模拟，各组通过多轮金融与战略决策相互竞争。</span>
             </div>
           </div>
-          <div>
-            <div class="card-title">ASEAN Economy Explorer</div>
-            <div class="card-title-cn">东盟经济探索</div>
+          <div class="card-footer">
+            <div class="card-meta"><span>⏱ Full class</span></div>
           </div>
-          <div class="card-desc">
-            Interactive data explorer for ASEAN economic indicators. Compare GDP, trade, and financial data across member states.
-            <span class="cn">东盟经济指标互动数据探索工具，比较各成员国GDP、贸易与金融数据。</span>
-          </div>
+          <span class="coming-badge">Coming Soon</span>
         </div>
-        <div class="card-footer">
-          <div class="card-meta"><span>⏱ Research tool</span></div>
-          <span class="card-arrow">→</span>
-        </div>
-        <span class="coming-badge">Coming Soon</span>
-      </div>
 
+      </div>
     </div>
+
+    <!-- ── ACC 101 GROUP ── -->
+    <div class="subject-group">
+      <div class="subject-header">
+        <div class="subject-code-badge" style="background:#dbeafe;color:#1d4ed8;border-color:#bfdbfe">ACC 101</div>
+        <div class="subject-info">
+          <div class="subject-name">Fundamentals of Financial Accounting</div>
+          <div class="subject-name-cn">财务会计基础</div>
+        </div>
+      </div>
+      <div class="app-grid">
+
+        <!-- ACC101 #1 — Coming Soon -->
+        <div class="app-card coming-soon">
+          <div class="card-band band-blue"></div>
+          <div class="card-body">
+            <div class="card-top">
+              <div class="card-icon">📒</div>
+              <div class="card-badges">
+                <span class="badge badge-blue">#1</span>
+                <span class="badge badge-gray">Coming Soon</span>
+              </div>
+            </div>
+            <div>
+              <div class="card-title">The Accounting Equation</div>
+              <div class="card-title-cn">会计等式 — 互动探究</div>
+            </div>
+            <div class="card-desc">
+              Interactive activity exploring Assets = Liabilities + Equity through real-world transactions. Students build intuition for double-entry bookkeeping.
+              <span class="cn">通过真实交易情境，互动探究资产=负债+所有者权益，建立复式记账直觉。</span>
+            </div>
+          </div>
+          <div class="card-footer">
+            <div class="card-meta"><span>⏱ 20 min</span><span>👥 Groups of 3</span></div>
+          </div>
+          <span class="coming-badge">Coming Soon</span>
+        </div>
+
+        <!-- ACC101 #2 — Coming Soon -->
+        <div class="app-card coming-soon">
+          <div class="card-band band-blue"></div>
+          <div class="card-body">
+            <div class="card-top">
+              <div class="card-icon">📑</div>
+              <div class="card-badges">
+                <span class="badge badge-blue">#2</span>
+                <span class="badge badge-gray">Coming Soon</span>
+              </div>
+            </div>
+            <div>
+              <div class="card-title">Reading Financial Statements</div>
+              <div class="card-title-cn">财务报表解读 — 案例分析</div>
+            </div>
+            <div class="card-desc">
+              Case-based activity using real company financial statements. Students identify key line items and interpret what the numbers reveal about business performance.
+              <span class="cn">基于真实企业财务报表的案例分析，识别关键科目并解读数字背后的经营意义。</span>
+            </div>
+          </div>
+          <div class="card-footer">
+            <div class="card-meta"><span>⏱ 25 min</span></div>
+          </div>
+          <span class="coming-badge">Coming Soon</span>
+        </div>
+
+        <!-- ACC101 #3 — Coming Soon -->
+        <div class="app-card coming-soon">
+          <div class="card-band band-blue"></div>
+          <div class="card-body">
+            <div class="card-top">
+              <div class="card-icon">🧾</div>
+              <div class="card-badges">
+                <span class="badge badge-blue">#3</span>
+                <span class="badge badge-gray">Coming Soon</span>
+              </div>
+            </div>
+            <div>
+              <div class="card-title">Journal Entry Quiz</div>
+              <div class="card-title-cn">日记账分录测验</div>
+            </div>
+            <div class="card-desc">
+              Auto-graded quiz on debit and credit journal entries. Covers common transactions with instant bilingual feedback and explanations.
+              <span class="cn">借贷分录自动评分测验，涵盖常见交易类型，附双语即时反馈说明。</span>
+            </div>
+          </div>
+          <div class="card-footer">
+            <div class="card-meta"><span>⏱ 15 min</span></div>
+          </div>
+          <span class="coming-badge">Coming Soon</span>
+        </div>
+
+      </div>
+    </div>
+
   </section>
 
   <!-- ABOUT -->
@@ -639,26 +722,22 @@ footer a:hover { color: rgba(255,255,255,0.8); }
       <div class="about-col">
         <div class="about-label">About · 关于</div>
         <div class="about-text">
-          <strong>Dr. Yunlin Yang (Caspar)</strong> is Executive Director and Lecturer at Stamford International University, Hua Hin Campus. Holding a <strong>PhD in Finance</strong>, he specialises in making complex financial and quantitative concepts accessible through structured, student-centred pedagogy.
+          <strong>Dr. Yunlin Yang (Caspar)</strong> is Executive Director and Lecturer at Stamford International University, Hua Hin Campus. Holding a <strong>PhD in Finance from the University of Newcastle Upon Tyne</strong>, he specialises in making complex financial and quantitative concepts accessible through structured, student-centred pedagogy.
           <br><br>
           This site hosts bilingual interactive teaching tools built for undergraduate students — designed to complement lectures with discovery-based learning.
           <br><br>
-          <span style="color:rgba(255,255,255,0.4);font-size:13px;">杨云麟博士（Caspar）现任斯坦福国际大学华欣校区执行校长兼讲师，专注于通过结构化、以学生为中心的教学法，使复杂的金融与定量概念变得易于理解。</span>
+          <span style="color:rgba(255,255,255,0.4);font-size:13px;">杨云麟博士（Caspar）现任斯坦福国际大学华欣校区执行总监兼讲师，专注于通过结构化、以学生为中心的教学法，使复杂的金融与定量概念变得易于理解。</span>
         </div>
       </div>
       <div class="about-col">
         <div class="about-label">Roles · 职务</div>
         <div class="about-roles">
           <div class="role-item"><div class="role-dot"></div>Executive Director, Hua Hin Campus</div>
-          <div class="role-item"><div class="role-dot"></div>Academic Director, Hua Hin Campus</div>
-          <div class="role-item"><div class="role-dot"></div>Head of Administration &amp; Facilities</div>
-          <div class="role-item"><div class="role-dot"></div>Acting Head of English Program</div>
-          <div class="role-item"><div class="role-dot"></div>Lecturer &amp; Academic Advisor</div>
         </div>
         <div style="margin-top:24px">
           <div class="about-label">Subjects · 教授科目</div>
           <div class="about-text" style="font-size:13px">
-            Finance · Accounting · Statistics · Economics · Business Strategy · ASEAN Studies
+            Finance · Accounting · Statistics · Economics · Business Strategy
           </div>
         </div>
       </div>
