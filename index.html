@@ -1,0 +1,693 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Dr. Yunlin Yang (Caspar) — Teaching Hub</title>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Serif+SC:wght@400;600;700&family=Cormorant+Garamond:ital,wght@0,400;0,600;1,400&family=Noto+Sans+SC:wght@300;400;500&family=DM+Sans:ital,wght@0,300;0,400;0,500;1,300&display=swap" rel="stylesheet">
+<style>
+:root {
+  --ink: #1c1917;
+  --ink2: #44403c;
+  --ink3: #78716c;
+  --ink4: #a8a29e;
+  --paper: #fafaf9;
+  --paper2: #f5f5f4;
+  --paper3: #e7e5e4;
+  --gold: #b45309;
+  --gold-light: #fef3c7;
+  --gold-mid: #d97706;
+  --teal: #0f766e;
+  --teal-light: #ccfbf1;
+  --blue: #1d4ed8;
+  --blue-light: #dbeafe;
+  --red: #b91c1c;
+  --red-light: #fee2e2;
+  --green: #15803d;
+  --green-light: #dcfce7;
+  --purple: #7e22ce;
+  --purple-light: #f3e8ff;
+}
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+html { scroll-behavior: smooth; }
+body {
+  font-family: 'DM Sans', 'Noto Sans SC', sans-serif;
+  background: var(--paper);
+  color: var(--ink);
+  line-height: 1.6;
+  overflow-x: hidden;
+}
+
+/* ── HERO ── */
+.hero {
+  min-height: 100vh;
+  background: var(--ink);
+  display: grid;
+  grid-template-rows: auto 1fr auto;
+  position: relative;
+  overflow: hidden;
+}
+.hero::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background:
+    radial-gradient(ellipse 80% 60% at 70% 40%, rgba(180,83,9,0.18) 0%, transparent 60%),
+    radial-gradient(ellipse 50% 80% at 10% 80%, rgba(15,118,110,0.12) 0%, transparent 55%);
+  pointer-events: none;
+}
+/* Subtle grid texture */
+.hero::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background-image:
+    linear-gradient(rgba(255,255,255,0.02) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(255,255,255,0.02) 1px, transparent 1px);
+  background-size: 60px 60px;
+  pointer-events: none;
+}
+
+.hero-nav {
+  position: relative;
+  z-index: 10;
+  padding: 24px 48px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+.nav-logo {
+  font-family: 'Cormorant Garamond', 'Noto Serif SC', serif;
+  font-size: 18px;
+  font-weight: 600;
+  color: rgba(255,255,255,0.9);
+  letter-spacing: .02em;
+}
+.nav-logo span { color: #d97706; }
+.nav-links {
+  display: flex;
+  gap: 28px;
+  list-style: none;
+}
+.nav-links a {
+  font-size: 12px;
+  font-weight: 500;
+  letter-spacing: .08em;
+  text-transform: uppercase;
+  color: rgba(255,255,255,0.5);
+  text-decoration: none;
+  transition: color .2s;
+}
+.nav-links a:hover { color: rgba(255,255,255,0.9); }
+
+.hero-body {
+  position: relative;
+  z-index: 10;
+  display: flex;
+  align-items: center;
+  padding: 0 48px;
+  max-width: 1100px;
+  margin: 0 auto;
+  width: 100%;
+}
+.hero-content { max-width: 680px; }
+.hero-eyebrow {
+  font-size: 11px;
+  font-weight: 500;
+  letter-spacing: .18em;
+  text-transform: uppercase;
+  color: #d97706;
+  margin-bottom: 20px;
+  animation: fadeUp .6s ease both;
+}
+.hero-name {
+  font-family: 'Cormorant Garamond', 'Noto Serif SC', serif;
+  font-size: clamp(42px, 6vw, 72px);
+  font-weight: 600;
+  color: #fff;
+  line-height: 1.05;
+  margin-bottom: 6px;
+  animation: fadeUp .6s .1s ease both;
+}
+.hero-name-cn {
+  font-family: 'Cormorant Garamond', 'Noto Serif SC', serif;
+  font-size: clamp(22px, 3vw, 34px);
+  font-weight: 400;
+  font-style: italic;
+  color: rgba(255,255,255,0.4);
+  margin-bottom: 28px;
+  animation: fadeUp .6s .15s ease both;
+}
+.hero-title {
+  font-size: 15px;
+  color: rgba(255,255,255,0.65);
+  line-height: 1.7;
+  margin-bottom: 36px;
+  font-weight: 300;
+  animation: fadeUp .6s .2s ease both;
+}
+.hero-title strong { color: rgba(255,255,255,0.9); font-weight: 500; }
+.hero-pills {
+  display: flex;
+  gap: 10px;
+  flex-wrap: wrap;
+  animation: fadeUp .6s .3s ease both;
+}
+.hero-pill {
+  font-size: 11px;
+  font-weight: 500;
+  padding: 5px 14px;
+  border-radius: 20px;
+  border: 1px solid rgba(255,255,255,0.15);
+  color: rgba(255,255,255,0.6);
+  background: rgba(255,255,255,0.05);
+  letter-spacing: .04em;
+}
+
+.hero-footer {
+  position: relative;
+  z-index: 10;
+  padding: 28px 48px;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  animation: fadeUp .6s .4s ease both;
+}
+.scroll-hint {
+  font-size: 11px;
+  letter-spacing: .1em;
+  text-transform: uppercase;
+  color: rgba(255,255,255,0.3);
+}
+.scroll-line {
+  width: 40px;
+  height: 1px;
+  background: rgba(255,255,255,0.2);
+}
+
+@keyframes fadeUp {
+  from { opacity: 0; transform: translateY(16px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+/* ── MAIN CONTENT ── */
+.main { max-width: 1100px; margin: 0 auto; padding: 80px 48px 100px; }
+
+.section-header {
+  display: flex;
+  align-items: baseline;
+  gap: 16px;
+  margin-bottom: 36px;
+}
+.section-title {
+  font-family: 'Cormorant Garamond', 'Noto Serif SC', serif;
+  font-size: 32px;
+  font-weight: 600;
+  color: var(--ink);
+}
+.section-title-cn {
+  font-size: 14px;
+  color: var(--ink4);
+  font-weight: 300;
+}
+.section-line {
+  flex: 1;
+  height: 1px;
+  background: var(--paper3);
+}
+
+/* ── APP GRID ── */
+.app-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+  gap: 20px;
+  margin-bottom: 80px;
+}
+
+.app-card {
+  background: var(--paper);
+  border: 1px solid var(--paper3);
+  border-radius: 14px;
+  overflow: hidden;
+  text-decoration: none;
+  color: inherit;
+  display: flex;
+  flex-direction: column;
+  transition: all .2s;
+  box-shadow: 0 1px 4px rgba(0,0,0,0.04);
+  position: relative;
+}
+.app-card:hover {
+  transform: translateY(-3px);
+  box-shadow: 0 12px 32px rgba(0,0,0,0.1);
+  border-color: var(--paper3);
+}
+.app-card.coming-soon {
+  opacity: .6;
+  cursor: default;
+  pointer-events: none;
+}
+
+.card-band {
+  height: 5px;
+  width: 100%;
+}
+.band-gold { background: linear-gradient(90deg, #b45309, #d97706, #f59e0b); }
+.band-teal { background: linear-gradient(90deg, #0f766e, #0d9488, #14b8a6); }
+.band-blue { background: linear-gradient(90deg, #1d4ed8, #2563eb, #3b82f6); }
+.band-red  { background: linear-gradient(90deg, #b91c1c, #dc2626, #ef4444); }
+.band-purple { background: linear-gradient(90deg, #7e22ce, #9333ea, #a855f7); }
+.band-green { background: linear-gradient(90deg, #15803d, #16a34a, #22c55e); }
+
+.card-body { padding: 22px 24px; flex: 1; display: flex; flex-direction: column; gap: 10px; }
+.card-top { display: flex; align-items: flex-start; justify-content: space-between; gap: 10px; }
+.card-icon { font-size: 28px; line-height: 1; }
+.card-badges { display: flex; gap: 6px; flex-wrap: wrap; }
+.badge {
+  font-size: 10px;
+  font-weight: 600;
+  padding: 2px 8px;
+  border-radius: 20px;
+  letter-spacing: .04em;
+  text-transform: uppercase;
+}
+.badge-gold { background: var(--gold-light); color: var(--gold); }
+.badge-teal { background: var(--teal-light); color: var(--teal); }
+.badge-blue { background: var(--blue-light); color: var(--blue); }
+.badge-gray { background: var(--paper2); color: var(--ink3); border: 1px solid var(--paper3); }
+.badge-green { background: var(--green-light); color: var(--green); }
+
+.card-title {
+  font-family: 'Cormorant Garamond', 'Noto Serif SC', serif;
+  font-size: 20px;
+  font-weight: 600;
+  color: var(--ink);
+  line-height: 1.2;
+}
+.card-title-cn { font-size: 12px; color: var(--ink4); font-weight: 300; margin-top: 2px; }
+.card-desc { font-size: 13px; color: var(--ink3); line-height: 1.65; flex: 1; }
+.card-desc .cn { color: var(--ink4); font-size: 12px; margin-top:4px; display:block; }
+
+.card-footer {
+  padding: 14px 24px;
+  border-top: 1px solid var(--paper2);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  font-size: 12px;
+  color: var(--ink4);
+}
+.card-meta { display: flex; gap: 12px; align-items: center; }
+.card-arrow {
+  font-size: 16px;
+  color: var(--ink3);
+  transition: transform .2s;
+}
+.app-card:hover .card-arrow { transform: translateX(4px); }
+
+.coming-badge {
+  position: absolute;
+  top: 18px;
+  right: 18px;
+  font-size: 9px;
+  font-weight: 700;
+  letter-spacing: .1em;
+  text-transform: uppercase;
+  background: var(--paper3);
+  color: var(--ink4);
+  padding: 3px 8px;
+  border-radius: 20px;
+}
+
+/* ── ABOUT STRIP ── */
+.about-strip {
+  background: var(--ink);
+  border-radius: 16px;
+  padding: 48px;
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 48px;
+  margin-bottom: 60px;
+  position: relative;
+  overflow: hidden;
+}
+.about-strip::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: radial-gradient(ellipse 60% 80% at 90% 50%, rgba(180,83,9,0.15) 0%, transparent 60%);
+  pointer-events: none;
+}
+.about-col { position: relative; z-index: 1; }
+.about-label {
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: .14em;
+  text-transform: uppercase;
+  color: #d97706;
+  margin-bottom: 14px;
+}
+.about-text {
+  font-size: 14px;
+  color: rgba(255,255,255,0.65);
+  line-height: 1.8;
+  font-weight: 300;
+}
+.about-text strong { color: rgba(255,255,255,0.9); font-weight: 500; }
+.about-roles { display: flex; flex-direction: column; gap: 8px; margin-top: 4px; }
+.role-item {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-size: 13px;
+  color: rgba(255,255,255,0.6);
+}
+.role-dot {
+  width: 5px; height: 5px;
+  border-radius: 50%;
+  background: #d97706;
+  flex-shrink: 0;
+}
+
+/* ── CONTACT ── */
+.contact-strip {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 28px 36px;
+  background: var(--paper2);
+  border-radius: 12px;
+  border: 1px solid var(--paper3);
+  gap: 20px;
+  flex-wrap: wrap;
+}
+.contact-text { font-size: 14px; color: var(--ink2); }
+.contact-text .cn { font-size: 12px; color: var(--ink4); display: block; margin-top: 2px; }
+.contact-info { display: flex; gap: 20px; align-items: center; flex-wrap: wrap; }
+.contact-item {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 12px;
+  color: var(--ink3);
+}
+.contact-item .icon { font-size: 14px; }
+
+/* ── FOOTER ── */
+footer {
+  background: var(--ink);
+  color: rgba(255,255,255,0.3);
+  text-align: center;
+  padding: 24px 48px;
+  font-size: 11px;
+  letter-spacing: .04em;
+  line-height: 1.8;
+}
+footer a { color: rgba(255,255,255,0.5); text-decoration: none; }
+footer a:hover { color: rgba(255,255,255,0.8); }
+
+/* ── RESPONSIVE ── */
+@media (max-width: 768px) {
+  .hero-nav { padding: 20px 24px; }
+  .nav-links { display: none; }
+  .hero-body { padding: 0 24px; }
+  .hero-footer { padding: 24px; }
+  .main { padding: 48px 24px 60px; }
+  .about-strip { grid-template-columns: 1fr; padding: 32px 24px; gap: 28px; }
+  .contact-strip { padding: 20px 24px; }
+  footer { padding: 20px 24px; }
+}
+</style>
+</head>
+<body>
+
+<!-- HERO -->
+<section class="hero">
+  <nav class="hero-nav">
+    <div class="nav-logo">Dr. <span>Caspar</span> Yang</div>
+    <ul class="nav-links">
+      <li><a href="#apps">Teaching Apps</a></li>
+      <li><a href="#about">About</a></li>
+      <li><a href="https://github.com/hsuanming" target="_blank">GitHub</a></li>
+    </ul>
+  </nav>
+
+  <div class="hero-body">
+    <div class="hero-content">
+      <div class="hero-eyebrow">Teaching Hub · 教学资源中心</div>
+      <div class="hero-name">Dr. Yunlin Yang</div>
+      <div class="hero-name-cn">杨云麟博士 · Caspar</div>
+      <div class="hero-title">
+        <strong>Executive Director & Lecturer</strong> — Stamford International University, Hua Hin<br>
+        PhD in Finance · Business Finance · Statistics · Economics · ASEAN Studies
+      </div>
+      <div class="hero-pills">
+        <span class="hero-pill">Business Finance</span>
+        <span class="hero-pill">Interactive Learning</span>
+        <span class="hero-pill">双语教学</span>
+        <span class="hero-pill">FIN 220</span>
+        <span class="hero-pill">Undergraduate</span>
+      </div>
+    </div>
+  </div>
+
+  <div class="hero-footer">
+    <div class="scroll-line"></div>
+    <div class="scroll-hint">Scroll to explore</div>
+  </div>
+</section>
+
+<!-- MAIN -->
+<main class="main">
+
+  <!-- APPS SECTION -->
+  <section id="apps">
+    <div class="section-header">
+      <div class="section-title">Teaching Apps</div>
+      <div class="section-title-cn">互动教学应用</div>
+      <div class="section-line"></div>
+    </div>
+
+    <div class="app-grid">
+
+      <!-- FIN 220 Activity -->
+      <a href="./fin220-activity/index.html" class="app-card">
+        <div class="card-band band-gold"></div>
+        <div class="card-body">
+          <div class="card-top">
+            <div class="card-icon">💰</div>
+            <div class="card-badges">
+              <span class="badge badge-gold">FIN 220</span>
+              <span class="badge badge-teal">Interactive</span>
+            </div>
+          </div>
+          <div>
+            <div class="card-title">What is Finance?</div>
+            <div class="card-title-cn">什么是金融？— 小组探究活动</div>
+          </div>
+          <div class="card-desc">
+            A 6-step bilingual inductive inquiry activity. Students discover the definition of finance by analysing 3 everyday financial products and finding their common thread.
+            <span class="cn">6步双语归纳探究活动，通过分析3种日常金融产品，引导学生自主发现金融的本质定义。</span>
+          </div>
+        </div>
+        <div class="card-footer">
+          <div class="card-meta">
+            <span>⏱ 25–30 min</span>
+            <span>👥 Groups of 3</span>
+            <span>🇬🇧🇨🇳 Bilingual</span>
+          </div>
+          <span class="card-arrow">→</span>
+        </div>
+      </a>
+
+      <!-- Coming Soon 2 -->
+      <div class="app-card coming-soon">
+        <div class="card-band band-teal"></div>
+        <div class="card-body">
+          <div class="card-top">
+            <div class="card-icon">📊</div>
+            <div class="card-badges">
+              <span class="badge badge-gray">Coming Soon</span>
+            </div>
+          </div>
+          <div>
+            <div class="card-title">Time Value of Money</div>
+            <div class="card-title-cn">货币时间价值 — 互动计算器</div>
+          </div>
+          <div class="card-desc">
+            Interactive PV / FV calculator with visual timeline. Students explore how money grows over time with different rates and periods.
+            <span class="cn">互动现值/终值计算器，配合视觉时间轴，帮助学生理解货币时间价值。</span>
+          </div>
+        </div>
+        <div class="card-footer">
+          <div class="card-meta"><span>⏱ In-class tool</span></div>
+          <span class="card-arrow">→</span>
+        </div>
+        <span class="coming-badge">Coming Soon</span>
+      </div>
+
+      <!-- Coming Soon 3 -->
+      <div class="app-card coming-soon">
+        <div class="card-band band-blue"></div>
+        <div class="card-body">
+          <div class="card-top">
+            <div class="card-icon">🎯</div>
+            <div class="card-badges">
+              <span class="badge badge-gray">Coming Soon</span>
+            </div>
+          </div>
+          <div>
+            <div class="card-title">Risk & Return Quiz</div>
+            <div class="card-title-cn">风险与回报 — 概念测验</div>
+          </div>
+          <div class="card-desc">
+            Auto-graded concept quiz on risk, return, and diversification. Instant feedback with bilingual explanations.
+            <span class="cn">风险、回报与多元化的自动评分概念测验，附双语即时反馈。</span>
+          </div>
+        </div>
+        <div class="card-footer">
+          <div class="card-meta"><span>⏱ 15 min</span></div>
+          <span class="card-arrow">→</span>
+        </div>
+        <span class="coming-badge">Coming Soon</span>
+      </div>
+
+      <!-- Coming Soon 4 -->
+      <div class="app-card coming-soon">
+        <div class="card-band band-purple"></div>
+        <div class="card-body">
+          <div class="card-top">
+            <div class="card-icon">🏢</div>
+            <div class="card-badges">
+              <span class="badge badge-gray">Coming Soon</span>
+            </div>
+          </div>
+          <div>
+            <div class="card-title">Business Strategy Simulation</div>
+            <div class="card-title-cn">商业策略模拟游戏</div>
+          </div>
+          <div class="card-desc">
+            Team-based business decision simulation. Groups compete by making financial and strategic decisions across multiple rounds.
+            <span class="cn">团队商业决策模拟，各组通过多轮金融与战略决策相互竞争。</span>
+          </div>
+        </div>
+        <div class="card-footer">
+          <div class="card-meta"><span>⏱ Full class</span></div>
+          <span class="card-arrow">→</span>
+        </div>
+        <span class="coming-badge">Coming Soon</span>
+      </div>
+
+      <!-- Coming Soon 5 -->
+      <div class="app-card coming-soon">
+        <div class="card-band band-red"></div>
+        <div class="card-body">
+          <div class="card-top">
+            <div class="card-icon">📉</div>
+            <div class="card-badges">
+              <span class="badge badge-gray">Coming Soon</span>
+            </div>
+          </div>
+          <div>
+            <div class="card-title">Statistics Quiz</div>
+            <div class="card-title-cn">商业统计测验</div>
+          </div>
+          <div class="card-desc">
+            Concept checks and calculation problems for Business Statistics. Covers descriptive stats, probability, and hypothesis testing.
+            <span class="cn">商业统计概念与计算题，涵盖描述统计、概率与假设检验。</span>
+          </div>
+        </div>
+        <div class="card-footer">
+          <div class="card-meta"><span>⏱ 20 min</span></div>
+          <span class="card-arrow">→</span>
+        </div>
+        <span class="coming-badge">Coming Soon</span>
+      </div>
+
+      <!-- Coming Soon 6 -->
+      <div class="app-card coming-soon">
+        <div class="card-band band-green"></div>
+        <div class="card-body">
+          <div class="card-top">
+            <div class="card-icon">🌏</div>
+            <div class="card-badges">
+              <span class="badge badge-gray">Coming Soon</span>
+            </div>
+          </div>
+          <div>
+            <div class="card-title">ASEAN Economy Explorer</div>
+            <div class="card-title-cn">东盟经济探索</div>
+          </div>
+          <div class="card-desc">
+            Interactive data explorer for ASEAN economic indicators. Compare GDP, trade, and financial data across member states.
+            <span class="cn">东盟经济指标互动数据探索工具，比较各成员国GDP、贸易与金融数据。</span>
+          </div>
+        </div>
+        <div class="card-footer">
+          <div class="card-meta"><span>⏱ Research tool</span></div>
+          <span class="card-arrow">→</span>
+        </div>
+        <span class="coming-badge">Coming Soon</span>
+      </div>
+
+    </div>
+  </section>
+
+  <!-- ABOUT -->
+  <section id="about">
+    <div class="about-strip">
+      <div class="about-col">
+        <div class="about-label">About · 关于</div>
+        <div class="about-text">
+          <strong>Dr. Yunlin Yang (Caspar)</strong> is Executive Director and Lecturer at Stamford International University, Hua Hin Campus. Holding a <strong>PhD in Finance</strong>, he specialises in making complex financial and quantitative concepts accessible through structured, student-centred pedagogy.
+          <br><br>
+          This site hosts bilingual interactive teaching tools built for undergraduate students — designed to complement lectures with discovery-based learning.
+          <br><br>
+          <span style="color:rgba(255,255,255,0.4);font-size:13px;">杨云麟博士（Caspar）现任斯坦福国际大学华欣校区执行校长兼讲师，专注于通过结构化、以学生为中心的教学法，使复杂的金融与定量概念变得易于理解。</span>
+        </div>
+      </div>
+      <div class="about-col">
+        <div class="about-label">Roles · 职务</div>
+        <div class="about-roles">
+          <div class="role-item"><div class="role-dot"></div>Executive Director, Hua Hin Campus</div>
+          <div class="role-item"><div class="role-dot"></div>Academic Director, Hua Hin Campus</div>
+          <div class="role-item"><div class="role-dot"></div>Head of Administration &amp; Facilities</div>
+          <div class="role-item"><div class="role-dot"></div>Acting Head of English Program</div>
+          <div class="role-item"><div class="role-dot"></div>Lecturer &amp; Academic Advisor</div>
+        </div>
+        <div style="margin-top:24px">
+          <div class="about-label">Subjects · 教授科目</div>
+          <div class="about-text" style="font-size:13px">
+            Finance · Accounting · Statistics · Economics · Business Strategy · ASEAN Studies
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- CONTACT -->
+  <div class="contact-strip">
+    <div class="contact-text">
+      Stamford International University — Hua Hin Campus
+      <span class="cn">斯坦福国际大学华欣校区 · Thailand</span>
+    </div>
+    <div class="contact-info">
+      <div class="contact-item"><span class="icon">🌐</span> hsuanming.github.io</div>
+      <div class="contact-item"><span class="icon">🎓</span> stamford.edu</div>
+      <div class="contact-item"><span class="icon">💻</span>
+        <a href="https://github.com/hsuanming" target="_blank" style="color:inherit;text-decoration:none">github.com/hsuanming</a>
+      </div>
+    </div>
+  </div>
+
+</main>
+
+<footer>
+  © 2026 Dr. Yunlin Yang (Caspar) · Stamford International University, Hua Hin ·
+  <a href="https://github.com/hsuanming" target="_blank">github.com/hsuanming</a>
+  <br>
+  Built with Claude · Designed for student-centred undergraduate teaching · 双语互动教学工具
+</footer>
+
+</body>
+</html>
